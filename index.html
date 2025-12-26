@@ -33,21 +33,17 @@
         #status-log { margin-top: 15px; color: #FFD700; font-size: 14px; font-family: monospace; min-height: 20px; text-align: center; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px; }
 
         /* --- 2. LOBBY SCREEN --- */
-        /* FIX: Removed 'display: none' that was overriding the .active class */
         #lobby-screen { background: #111; padding: 20px; flex-direction: column; }
-        
-        /* Updated Lobby Header Layout */
         .lobby-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
         .room-code { font-family: monospace; color: #FFD700; font-size: 20px; background: #222; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         
-        /* Moved Start Button to Top Area so it's never covered */
         #start-area { width: 100%; margin-bottom: 10px; display: none; }
         #start-btn { width: 100%; padding: 15px; font-size: 20px; background: #333; color: #aaa; border: 2px solid #444; border-radius: 10px; cursor: not-allowed; }
         #start-btn.ready { background: linear-gradient(45deg, #00E676, #00C853); color: black; border-color: #00E676; cursor: pointer; animation: pulse 2s infinite; }
         
         @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); } }
 
-        .player-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; width: 100%; padding-bottom: 120px; /* Space for char selector */ }
+        .player-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; width: 100%; padding-bottom: 120px; }
         .player-item { background: #222; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #555; }
         .player-item.host { border-left-color: #FFD700; }
         .player-item.me { background: #2a2a2a; }
@@ -69,22 +65,22 @@
 
         #spec-badge { position: absolute; top: 70px; width: 100%; text-align: center; background: rgba(0,0,0,0.7); color: #FFD700; padding: 5px; font-size: 14px; font-weight: bold; display: none; z-index: 90; }
 
-        #match-queue {
-            position: absolute; top: 70px; right: 10px; 
-            background: rgba(0,0,0,0.8); border: 1px solid #444; 
-            padding: 10px; border-radius: 8px; z-index: 90;
-            max-width: 150px; font-size: 12px; display: none;
-        }
+        #match-queue { position: absolute; top: 70px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid #444; padding: 10px; border-radius: 8px; z-index: 90; max-width: 150px; font-size: 12px; display: none; }
         .q-title { color: #aaa; border-bottom: 1px solid #555; margin-bottom: 5px; padding-bottom: 2px; font-weight: bold; }
         .q-item { color: white; margin-bottom: 2px; }
         .q-me { color: #FFD700; font-weight: bold; }
 
-        .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; z-index: 20; }
-        .hp-container { width: 45%; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 8px; backdrop-filter: blur(5px); }
+        /* HUD UPDATED WITH SCORE */
+        .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 20; }
+        .hp-container { width: 35%; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 8px; backdrop-filter: blur(5px); }
         .hp-name { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: white; justify-content: space-between; }
         .hp-bar-bg { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; }
         .hp-fill { height: 100%; width: 100%; background: #00E676; transition: width 0.1s linear; }
         
+        .score-board { width: 20%; text-align: center; font-family: 'Teko'; font-size: 40px; color: gold; text-shadow: 0 0 10px black; line-height: 1; }
+        .round-info { font-size: 14px; color: #aaa; font-family: 'Roboto'; letter-spacing: 1px; }
+
+        /* Fighters */
         .fighter { width: 80px; height: 140px; position: absolute; bottom: 20%; z-index: 10; transition: transform 0.1s; will-change: left, bottom; }
         .f-p1 { left: 20%; }
         .f-p2 { right: 20%; transform: scaleX(-1); }
@@ -103,44 +99,31 @@
         .hit { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: translateX(-5px); }
         .ko { transform: rotate(90deg) translateY(50px); filter: grayscale(1); }
 
-        /* --- UPDATED MOBILE CONTROLS FOR ASPECT RATIO --- */
-        #mobile-controls { 
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; 
-            z-index: 50; display: none; flex-direction: column; justify-content: flex-end; 
-            padding: 2vh 5vw; /* Dynamic padding based on viewport */
-            pointer-events: none; 
-        }
-        .ctrl-row { 
-            display: flex; justify-content: space-between; width: 100%; 
-            margin-bottom: 3vh; /* Dynamic bottom margin */
-            pointer-events: auto; 
-        }
+        /* Mobile Controls */
+        #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; flex-direction: column; justify-content: flex-end; padding: 2vh 5vw; pointer-events: none; }
+        .ctrl-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 3vh; pointer-events: auto; }
         .d-pad { display: flex; gap: 4vw; }
         .action-pad { display: flex; gap: 4vw; }
-
-        .c-btn { 
-            width: 15vmin; height: 15vmin; /* Scales with smaller dimension of screen */
-            max-width: 80px; max-height: 80px; /* Upper limit */
-            min-width: 50px; min-height: 50px; /* Lower limit */
-            border-radius: 50%; 
-            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); 
-            backdrop-filter: blur(4px); color: white; 
-            font-size: 5vmin; /* Dynamic font size */
-            display: flex; align-items: center; justify-content: center; 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
-        }
+        .c-btn { width: 15vmin; height: 15vmin; max-width: 80px; max-height: 80px; min-width: 50px; min-height: 50px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); color: white; font-size: 5vmin; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
         .c-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.95); }
         .btn-atk { background: rgba(255, 50, 50, 0.3); border-color: #ff5555; }
         .btn-jump { background: rgba(50, 255, 50, 0.3); border-color: #55ff55; }
 
         #pc-hint { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 12px; color: rgba(0,0,0,0.5); z-index: 15; display: none; }
 
+        /* Win Overlay */
         #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .win-title { font-family: 'Teko'; font-size: 70px; color: #FFD700; line-height: 1; }
-        .win-sub { font-size: 24px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; letter-spacing: 2px; }
+        .win-title { font-family: 'Teko'; font-size: 80px; color: #FFD700; line-height: 1; text-shadow: 0 0 20px #FFD700; animation: scaleUp 0.5s ease-out; }
+        .win-sub { font-size: 30px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; letter-spacing: 2px; text-transform: uppercase; }
         
+        @keyframes scaleUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
         .leaderboard { width: 80%; background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
         .lb-row { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #444; color: #aaa; font-size: 14px; }
+
+        /* CONFETTI CSS */
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; animation: fall linear forwards; }
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
 <body>
@@ -151,10 +134,8 @@
             <div class="logo-main">Assembly<br>Kombat</div>
             <div class="logo-sub">IPL TOURNAMENT</div>
         </div>
-        
         <button class="btn btn-host" onclick="initHost()">Host Tournament</button>
         <button class="btn btn-join" onclick="showJoin()">Join Tournament</button>
-        
         <div class="input-group" id="join-inputs">
             <input type="text" id="p-name" class="code-input" placeholder="YOUR NAME" maxlength="10">
             <input type="text" id="join-code" class="code-input" placeholder="ROOM CODE" maxlength="4">
@@ -169,14 +150,10 @@
             <div style="font-family:'Teko'; font-size:30px;">LOBBY</div>
             <div class="room-code" id="room-code-display" onclick="copyCode()">CODE: ....</div>
         </div>
-        
-        <!-- START BUTTON: MOVED TO TOP -->
         <div id="start-area">
             <button id="start-btn" onclick="startTournament()" disabled>WAITING FOR PLAYERS (1/2)</button>
         </div>
-
         <div class="player-list" id="player-list"></div>
-
         <div class="char-select-overlay" id="char-select">
             <div style="color:#aaa; margin-bottom:5px; font-size:12px;">CHOOSE LEADER</div>
             <div class="char-grid" id="char-grid"></div>
@@ -203,11 +180,17 @@
 
         <div class="hud">
             <div class="hp-container">
-                <div class="hp-name"><span id="p1-name">P1</span> <span id="p1-char">🦁</span></div>
+                <div class="hp-name"><span id="p1-name">VIJAY</span> <span id="p1-char">🦁</span></div>
                 <div class="hp-bar-bg"><div id="hp-p1" class="hp-fill"></div></div>
             </div>
+            
+            <div class="score-board">
+                <div id="score-display">0 - 0</div>
+                <div class="round-info">FIRST TO 5</div>
+            </div>
+
             <div class="hp-container" style="text-align:right; align-items: flex-end; display:flex; flex-direction:column;">
-                <div class="hp-name"><span id="p2-name">P2</span> <span id="p2-char">🐯</span></div>
+                <div class="hp-name"><span id="p2-name">OPPONENT</span> <span id="p2-char">🐯</span></div>
                 <div class="hp-bar-bg"><div id="hp-p2" class="hp-fill"></div></div>
             </div>
         </div>
@@ -237,20 +220,17 @@
 
         <div id="win-overlay">
             <div class="win-title" id="win-title">VIJAY WINS</div>
-            <div class="win-sub">CM FOR 2026</div>
-            
+            <div class="win-sub" id="win-sub">IS THE CM OF TAMIL NADU!</div>
             <div class="leaderboard">
                 <div class="lb-row" style="color:#FFD700; font-weight:bold;"><span>PLAYER</span><span>WINS</span></div>
                 <div id="lb-content"></div>
             </div>
-
             <button class="btn btn-host" id="next-match-btn" style="display:none;" onclick="nextMatch()">NEXT MATCH</button>
             <div id="wait-msg" style="color:#aaa; font-size:14px; margin-top:10px; display:none;">Waiting for Host...</div>
         </div>
     </div>
 
     <script>
-        // --- UPDATED CHARACTER LIST ---
         const CHARS = [
             { id: 'vijay', name: 'TVK VIJAY', color: 'gold', icon: '🦁' },
             { id: 'stalin', name: 'MK STALIN', color: '#ff3333', icon: '☀️' },
@@ -263,15 +243,13 @@
         const JUMP_FORCE = 12; 
         const MOVE_SPEED = 0.6; 
         const GROUND_Y = 20;
+        const POINTS_TO_WIN = 5;
 
         const peerConfig = {
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
                     { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
                     { urls: 'stun:stun.services.mozilla.com' }
                 ]
             }
@@ -291,6 +269,7 @@
         let gameState = {
             p1: { x: 20, y: 0, vy: 0, hp: 100, action: null, id: null },
             p2: { x: 80, y: 0, vy: 0, hp: 100, action: null, id: null },
+            score: { p1: 0, p2: 0 },
             active: false,
             winner: null
         };
@@ -334,7 +313,6 @@
             role = 'host';
             myId = generateId(); 
             myName = "HOST";
-            
             players = [{ id: 'HOST', name: myName, char: myChar, wins: 0 }];
 
             if(peer) peer.destroy();
@@ -360,7 +338,6 @@
                             conn.send({ type: 'reject', msg: 'Match in Progress! Locked.' });
                             return;
                         }
-                        
                         const pExists = players.find(p => p.id === conn.peer);
                         if(!pExists) {
                             const safeChar = data.char || CHARS[0];
@@ -422,7 +399,8 @@
                 const div = document.createElement('div');
                 div.className = `player-item ${p.id === 'HOST' ? 'host' : ''}`;
                 const icon = p.char && p.char.icon ? p.char.icon : '?';
-                div.innerHTML = `<div><span style="font-size:20px">${icon}</span> <b>${p.name}</b></div> <div>Wins: ${p.wins}</div>`;
+                const leaderName = p.char && p.char.name ? p.char.name : 'Unknown';
+                div.innerHTML = `<div><span style="font-size:20px">${icon}</span> <b>${leaderName}</b> <span style="font-size:12px; color:#888;">(${p.name})</span></div> <div>Wins: ${p.wins}</div>`;
                 list.appendChild(div);
             });
         }
@@ -432,6 +410,7 @@
             tournamentStarted = true;
             currentMatch.p1 = players[0].id;
             currentMatch.p2 = players[1].id;
+            gameState.score = { p1: 0, p2: 0 }; // Reset match score
             startMatch();
         }
 
@@ -449,7 +428,8 @@
             const matchData = { 
                 p1: { name: p1Obj.name, char: p1Obj.char, id: p1Obj.id },
                 p2: { name: p2Obj.name, char: p2Obj.char, id: p2Obj.id },
-                queue: queueNames
+                queue: queueNames,
+                score: gameState.score
             };
 
             const payload = { type: 'match_start', match: matchData };
@@ -462,6 +442,7 @@
         }
 
         function nextMatch() {
+            // New Players Match - Reset Everything
             const winnerId = gameState.winner;
             const loserId = (currentMatch.p1 === winnerId) ? currentMatch.p2 : currentMatch.p1;
             
@@ -481,12 +462,12 @@
 
             currentMatch.p1 = players[0].id;
             currentMatch.p2 = players[1].id;
+            gameState.score = { p1: 0, p2: 0 }; // Reset score for new match
             
             document.getElementById('win-overlay').style.display = 'none';
             startMatch();
         }
 
-        // --- GUEST LOGIC ---
         function joinGame() {
             role = 'guest';
             myName = document.getElementById('p-name').value || "Guest";
@@ -502,7 +483,7 @@
             peer = new Peer(peerConfig);
 
             peer.on('open', (id) => {
-                logStatus("Network Ready. Connecting to Host...");
+                logStatus("Network Ready. Connecting...");
                 myId = id;
                 const conn = peer.connect(code, { serialization: 'json' });
                 
@@ -549,19 +530,22 @@
             if(peer && peer.conn && peer.conn.open) peer.conn.send(msg);
         }
 
-        // --- GAMEPLAY UI ---
         function setupGameUI(match) {
             switchScreen('game-screen');
             document.getElementById('win-overlay').style.display = 'none';
 
-            document.getElementById('p1-name').innerText = match.p1.name;
+            // Names
+            document.getElementById('p1-name').innerHTML = `${match.p1.char.name} <span style="font-size:10px">${match.p1.name}</span>`;
             document.getElementById('p1-char').innerText = match.p1.char.icon;
             document.getElementById('sash-p1').style.background = match.p1.char.color;
             
-            document.getElementById('p2-name').innerText = match.p2.name;
+            document.getElementById('p2-name').innerHTML = `${match.p2.char.name} <span style="font-size:10px">${match.p2.name}</span>`;
             document.getElementById('p2-char').innerText = match.p2.char.icon;
             document.getElementById('sash-p2').style.background = match.p2.char.color;
             
+            // Score
+            document.getElementById('score-display').innerText = `${match.score.p1} - ${match.score.p2}`;
+
             const qList = document.getElementById('q-list');
             qList.innerHTML = '';
             if(match.queue && match.queue.length > 0) {
@@ -578,7 +562,6 @@
             }
 
             let amIPlaying = false;
-            
             if(match.p1.id === 'HOST' && role === 'host') amIPlaying = true;
             else if(match.p2.id === 'HOST' && role === 'host') amIPlaying = true;
             else if(match.p1.id === myId || match.p2.id === myId) amIPlaying = true;
@@ -667,16 +650,63 @@
         function endGame(winnerKey) {
             gameState.active = false;
             
-            const wId = gameState[winnerKey].id;
-            const winnerObj = players.find(p => p.id === wId);
-            if(winnerObj) winnerObj.wins++;
-            gameState.winner = wId;
+            // Increment Round Score
+            gameState.score[winnerKey]++;
+            
+            // Check Grand Winner
+            if(gameState.score[winnerKey] >= POINTS_TO_WIN) {
+                // GRAND WINNER Logic
+                const wId = gameState[winnerKey].id;
+                const winnerObj = players.find(p => p.id === wId);
+                if(winnerObj) winnerObj.wins++;
+                gameState.winner = wId;
+                
+                const syncData = { type: 'sync', state: gameState };
+                connections.forEach(obj => { if(obj.conn && obj.conn.open) obj.conn.send(syncData); });
+                renderGame(gameState);
+            } else {
+                // Round Over - Reset Positions but keep score
+                setTimeout(() => {
+                    gameState.p1.x = 20; gameState.p1.y = 0; gameState.p1.hp = 100;
+                    gameState.p2.x = 80; gameState.p2.y = 0; gameState.p2.hp = 100;
+                    gameState.active = true;
+                    
+                    // Sync Reset
+                    const syncData = { type: 'sync', state: gameState };
+                    connections.forEach(obj => { if(obj.conn && obj.conn.open) obj.conn.send(syncData); });
+                    
+                    // Also update score display on clients
+                    const matchData = { 
+                        p1: players.find(p => p.id === currentMatch.p1),
+                        p2: players.find(p => p.id === currentMatch.p2),
+                        score: gameState.score,
+                        queue: [] // Simplified for round update
+                    };
+                    // Update HUD with new score
+                    const scorePayload = { type: 'match_start', match: {
+                        p1: { name: matchData.p1.name, char: matchData.p1.char, id: matchData.p1.id },
+                        p2: { name: matchData.p2.name, char: matchData.p2.char, id: matchData.p2.id },
+                        score: gameState.score
+                    }};
+                    connections.forEach(obj => { if(obj.conn && obj.conn.open) obj.conn.send(scorePayload); });
+                    setupGameUI(scorePayload.match); // Host UI
+                    
+                    requestAnimationFrame(gameLoop);
+                }, 2000);
+            }
+        }
 
-            const syncData = { type: 'sync', state: gameState };
-            connections.forEach(obj => {
-                if(obj.conn && obj.conn.open) obj.conn.send(syncData);
-            });
-            renderGame(gameState);
+        // CONFETTI GENERATOR
+        function triggerConfetti() {
+            for(let i=0; i<100; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#f00', '#0f0', '#00f', '#ff0'][Math.floor(Math.random()*4)];
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
         }
 
         function renderGame(state) {
@@ -696,9 +726,15 @@
             
             if(!state.active && state.winner) {
                 document.getElementById('win-overlay').style.display = 'flex';
-                const wObj = players.find(p => p.id === state.winner);
-                document.getElementById('win-title').innerText = wObj ? wObj.name : "WINNER";
                 
+                const wObj = players.find(p => p.id === state.winner);
+                const wName = wObj ? wObj.char.name : "WINNER";
+                document.getElementById('win-title').innerText = wName + " WINS";
+                document.getElementById('win-sub').innerText = "IS THE CM OF TAMIL NADU!";
+                
+                triggerConfetti();
+
+                // Leaderboard
                 const lb = document.getElementById('lb-content');
                 lb.innerHTML = '';
                 const sorted = [...players].sort((a,b) => b.wins - a.wins);
