@@ -4,7 +4,6 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Assembly Kombat: IPL Edition</title>
-    <!-- Using PeerJS 1.5.2 -->
     <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600&family=Roboto:wght@700&display=swap" rel="stylesheet">
     
@@ -26,8 +25,6 @@
         .btn:active { transform: scale(0.95); }
         .btn-host { background: linear-gradient(45deg, #00E676, #00C853); color: #003300; box-shadow: 0 0 15px rgba(0,230,118,0.3); }
         .btn-join { background: linear-gradient(45deg, #2979FF, #2962FF); color: white; box-shadow: 0 0 15px rgba(41,121,255,0.3); }
-        
-        /* Disabled Button Style */
         .btn:disabled { background: #333; color: #777; cursor: not-allowed; box-shadow: none; transform: none; }
 
         .input-group { display: flex; flex-direction: column; gap: 10px; width: 85%; max-width: 300px; display: none; }
@@ -45,6 +42,9 @@
         .player-item.host { border-left-color: #FFD700; }
         .player-item.me { background: #2a2a2a; }
         
+        /* Start Button - Hidden by default, shown via JS for Host */
+        #start-btn { width: 100%; max-width: 600px; margin: 20px auto; display: none; }
+
         .char-select-overlay { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; padding: 20px; border-top: 2px solid #333; transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; align-items: center; }
         .char-select-overlay.show { transform: translateY(0); }
         .char-grid { display: flex; gap: 10px; overflow-x: auto; width: 100%; padding-bottom: 10px; justify-content: center; }
@@ -61,10 +61,8 @@
         .flag-cloth { width: 30px; height: 20px; background: orange; position: absolute; top: 0; left: 0; }
         .floor { position: absolute; bottom: 0; width: 100%; height: 20%; background: #5D4037; border-top: 5px solid #3E2723; z-index: 1; }
 
-        /* Spectator Badge */
         #spec-badge { position: absolute; top: 70px; width: 100%; text-align: center; background: rgba(0,0,0,0.7); color: #FFD700; padding: 5px; font-size: 14px; font-weight: bold; display: none; z-index: 90; }
 
-        /* UPCOMING MATCHES LIST */
         #match-queue {
             position: absolute; top: 70px; right: 10px; 
             background: rgba(0,0,0,0.8); border: 1px solid #444; 
@@ -75,14 +73,12 @@
         .q-item { color: white; margin-bottom: 2px; }
         .q-me { color: #FFD700; font-weight: bold; }
 
-        /* HUD */
         .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; z-index: 20; }
         .hp-container { width: 45%; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 8px; backdrop-filter: blur(5px); }
         .hp-name { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: white; justify-content: space-between; }
         .hp-bar-bg { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; }
         .hp-fill { height: 100%; width: 100%; background: #00E676; transition: width 0.1s linear; }
         
-        /* Fighters */
         .fighter { width: 80px; height: 140px; position: absolute; bottom: 20%; z-index: 10; transition: transform 0.1s; will-change: left, bottom; }
         .f-p1 { left: 20%; }
         .f-p2 { right: 20%; transform: scaleX(-1); }
@@ -101,7 +97,6 @@
         .hit { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: translateX(-5px); }
         .ko { transform: rotate(90deg) translateY(50px); filter: grayscale(1); }
 
-        /* Controls */
         #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; flex-direction: column; justify-content: flex-end; padding: 20px; pointer-events: none; }
         .ctrl-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px; pointer-events: auto; }
         .d-pad { display: flex; gap: 20px; }
@@ -112,10 +107,8 @@
         .btn-atk { background: rgba(255, 50, 50, 0.3); border-color: #ff5555; }
         .btn-jump { background: rgba(50, 255, 50, 0.3); border-color: #55ff55; }
 
-        /* PC Hint */
         #pc-hint { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 12px; color: rgba(0,0,0,0.5); z-index: 15; display: none; }
 
-        /* Win Overlay */
         #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .win-title { font-family: 'Teko'; font-size: 70px; color: #FFD700; line-height: 1; }
         .win-sub { font-size: 24px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; letter-spacing: 2px; }
@@ -153,8 +146,7 @@
         
         <div class="player-list" id="player-list"></div>
 
-        <!-- START BUTTON: Always visible but disabled initially -->
-        <button id="start-btn" class="btn btn-host" style="width:100%; max-width:600px; margin: 20px auto; opacity: 0.5;" disabled onclick="startTournament()">WAITING FOR PLAYERS...</button>
+        <button id="start-btn" class="btn btn-host" disabled onclick="startTournament()">WAITING FOR PLAYERS...</button>
 
         <div class="char-select-overlay" id="char-select">
             <div style="color:#aaa; margin-bottom:10px; font-size:12px;">CHOOSE YOUR LEADER</div>
@@ -229,7 +221,6 @@
     </div>
 
     <script>
-        // --- CONFIG ---
         const CHARS = [
             { id: 'vijay', name: 'VIJAY', color: 'gold', icon: '🦁' },
             { id: 'stalin', name: 'STALIN', color: '#ff3333', icon: '☀️' },
@@ -238,13 +229,11 @@
             { id: 'seeman', name: 'SEEMAN', color: '#333', icon: '🐯' }
         ];
 
-        // PHYSICS TUNING
         const GRAVITY = 0.6;
         const JUMP_FORCE = 12; 
         const MOVE_SPEED = 0.6; 
         const GROUND_Y = 20;
 
-        // PEER CONFIG
         const peerConfig = {
             config: {
                 iceServers: [
@@ -254,20 +243,17 @@
             }
         };
 
-        // --- STATE ---
         let myId = null;
         let myName = "Player";
         let myChar = CHARS[0];
         let role = 'guest'; 
         let peer = null;
         
-        // Host Data
-        let connections = []; // Array of { conn: peerConn, id: peerId }
+        let connections = []; 
         let players = []; 
         let currentMatch = { p1: null, p2: null }; 
-        let tournamentStarted = false; // LOCK
+        let tournamentStarted = false; 
         
-        // Game State
         let gameState = {
             p1: { x: 20, y: 0, vy: 0, hp: 100, action: null, id: null },
             p2: { x: 80, y: 0, vy: 0, hp: 100, action: null, id: null },
@@ -280,7 +266,6 @@
         function isMobile() { return /Android|iPhone|iPad/i.test(navigator.userAgent); }
         function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
 
-        // --- UI ---
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
@@ -309,7 +294,6 @@
             if(role === 'host') updateMyProfileHost();
         }
 
-        // --- HOST LOGIC ---
         function generateId() { return Math.random().toString(36).substring(2,6).toUpperCase(); }
 
         function initHost() {
@@ -317,7 +301,6 @@
             myId = generateId(); 
             myName = "HOST";
             
-            // Host is always first player
             players = [{ id: 'HOST', name: myName, char: myChar, wins: 0 }];
 
             if(peer) peer.destroy();
@@ -327,13 +310,14 @@
                 switchScreen('lobby-screen');
                 document.getElementById('room-code-display').innerText = `CODE: ${id}`;
                 document.getElementById('char-select').classList.add('show');
+                // FORCE SHOW BUTTON FOR HOST
+                document.getElementById('start-btn').style.display = 'block'; 
                 renderPlayerList();
+                broadcastLobby();
             });
 
             peer.on('connection', (conn) => {
-                // When a connection opens
                 conn.on('open', () => {
-                    // Check if already in connections
                     const exists = connections.find(c => c.id === conn.peer);
                     if(!exists) connections.push({ conn: conn, id: conn.peer });
                 });
@@ -345,10 +329,11 @@
                             return;
                         }
                         
-                        // Add to player list if not exists
                         const pExists = players.find(p => p.id === conn.peer);
                         if(!pExists) {
-                            players.push({ id: conn.peer, name: data.name, char: data.char, wins: 0 });
+                            // Valid new player - Default char fallback to prevent crash
+                            const safeChar = data.char || CHARS[0];
+                            players.push({ id: conn.peer, name: data.name, char: safeChar, wins: 0 });
                         }
                         broadcastLobby();
                     }
@@ -363,7 +348,6 @@
                 });
                 
                 conn.on('close', () => {
-                    // Handle disconnect
                     connections = connections.filter(c => c.id !== conn.peer);
                     players = players.filter(p => p.id !== conn.peer);
                     broadcastLobby();
@@ -380,18 +364,22 @@
             renderPlayerList();
             const cleanList = players.map(p => ({ id: p.id, name: p.name, char: p.char, wins: p.wins }));
             
-            // Start Button Logic
             const btn = document.getElementById('start-btn');
-            if(players.length >= 2) {
-                btn.disabled = false;
-                btn.style.opacity = '1';
-                btn.innerText = "START IPL MATCH (" + players.length + " Players)";
-                btn.style.background = "linear-gradient(45deg, #00E676, #00C853)";
+            if(role === 'host') {
+                btn.style.display = 'block'; // Ensure visibility
+                if(players.length >= 2) {
+                    btn.disabled = false;
+                    btn.style.opacity = '1';
+                    btn.innerText = "START IPL MATCH (" + players.length + " Players)";
+                    btn.style.background = "linear-gradient(45deg, #00E676, #00C853)";
+                } else {
+                    btn.disabled = true;
+                    btn.style.opacity = '0.5';
+                    btn.innerText = "WAITING FOR PLAYERS...";
+                    btn.style.background = "#333";
+                }
             } else {
-                btn.disabled = true;
-                btn.style.opacity = '0.5';
-                btn.innerText = "WAITING FOR PLAYERS...";
-                btn.style.background = "#333";
+                btn.style.display = 'none'; // Hide for guest
             }
 
             connections.forEach(obj => {
@@ -407,7 +395,9 @@
             players.forEach(p => {
                 const div = document.createElement('div');
                 div.className = `player-item ${p.id === 'HOST' ? 'host' : ''}`;
-                div.innerHTML = `<div><span style="font-size:20px">${p.char.icon}</span> <b>${p.name}</b></div> <div>Wins: ${p.wins}</div>`;
+                // Safer access to icon in case of data sync issues
+                const icon = p.char && p.char.icon ? p.char.icon : '?';
+                div.innerHTML = `<div><span style="font-size:20px">${icon}</span> <b>${p.name}</b></div> <div>Wins: ${p.wins}</div>`;
                 list.appendChild(div);
             });
         }
@@ -415,7 +405,6 @@
         function startTournament() {
             if(players.length < 2) return alert("Need at least 2 players!");
             tournamentStarted = true;
-            // Initial Match: P1 vs P2
             currentMatch.p1 = players[0].id;
             currentMatch.p2 = players[1].id;
             startMatch();
@@ -451,7 +440,6 @@
             const winnerId = gameState.winner;
             const loserId = (currentMatch.p1 === winnerId) ? currentMatch.p2 : currentMatch.p1;
             
-            // Re-order players
             const loserIndex = players.findIndex(p => p.id === loserId);
             if(loserIndex > -1) {
                 const loserObj = players.splice(loserIndex, 1)[0];
@@ -461,7 +449,7 @@
             const winnerIndex = players.findIndex(p => p.id === winnerId);
             if(winnerIndex > -1) {
                 const winnerObj = players.splice(winnerIndex, 1)[0];
-                players.unshift(winnerObj); // Winner stays at top
+                players.unshift(winnerObj); 
             }
             
             broadcastLobby(); 
@@ -567,7 +555,6 @@
 
             let amIPlaying = false;
             
-            // Check based on IDs
             if(match.p1.id === 'HOST' && role === 'host') amIPlaying = true;
             else if(match.p2.id === 'HOST' && role === 'host') amIPlaying = true;
             else if(match.p1.id === myId || match.p2.id === myId) amIPlaying = true;
@@ -587,7 +574,6 @@
             }
         }
 
-        // --- GAME ENGINE ---
         function handleInput(playerId, data) {
             let pKey = null;
             if(playerId === gameState.p1.id) pKey = 'p1';
@@ -669,7 +655,6 @@
             renderGame(gameState);
         }
 
-        // --- RENDERER ---
         function renderGame(state) {
             document.getElementById('hp-p1').style.width = state.p1.hp + '%';
             document.getElementById('hp-p2').style.width = state.p2.hp + '%';
@@ -690,7 +675,6 @@
                 const wObj = players.find(p => p.id === state.winner);
                 document.getElementById('win-title').innerText = wObj ? wObj.name : "WINNER";
                 
-                // Show Leaderboard
                 const lb = document.getElementById('lb-content');
                 lb.innerHTML = '';
                 const sorted = [...players].sort((a,b) => b.wins - a.wins);
@@ -717,7 +701,6 @@
             if(act === 'kick') el.classList.add('kicking');
         }
 
-        // --- CONTROLS ---
         function setupPCControls() {
             window.onkeydown = (e) => {
                 if(e.repeat) return;
@@ -746,7 +729,6 @@
         }
 
         function sendInput(data) {
-            // FIX: Ensure data is wrapped as inputData for Guest
             if(role === 'host') hostInput(data);
             else sendToHost({ type: 'input', inputData: data });
         }
