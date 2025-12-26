@@ -3,53 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Assembly Kombat: Ultimate</title>
+    <title>Assembly Kombat: IPL Edition</title>
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600&family=Roboto:wght@700&display=swap" rel="stylesheet">
     
     <style>
         * { box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
-        body { margin: 0; background: #111; font-family: 'Roboto', sans-serif; overflow: hidden; color: white; }
+        body { margin: 0; background: #050505; font-family: 'Roboto', sans-serif; overflow: hidden; color: white; }
 
         /* --- SCREENS --- */
         .screen { display: none; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; flex-direction: column; }
         .active { display: flex; }
 
         /* --- 1. MENU SCREEN --- */
-        #menu-screen { align-items: center; justify-content: center; background: radial-gradient(circle, #2a2a2a, #000); }
-        .logo-box { text-align: center; margin-bottom: 40px; }
-        .logo-main { font-family: 'Teko', sans-serif; font-size: 80px; line-height: 0.8; background: linear-gradient(to right, #FFD700, #ff8c00); -webkit-background-clip: text; color: transparent; text-transform: uppercase; }
-        .logo-sub { font-size: 20px; letter-spacing: 5px; color: #888; margin-top: 10px; }
+        #menu-screen { align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a2e, #000); }
+        .logo-box { text-align: center; margin-bottom: 30px; }
+        .logo-main { font-family: 'Teko', sans-serif; font-size: 70px; line-height: 0.8; background: linear-gradient(to right, #FFD700, #ff8c00); -webkit-background-clip: text; color: transparent; text-transform: uppercase; }
+        .logo-sub { font-size: 18px; letter-spacing: 4px; color: #aaa; margin-top: 5px; }
 
-        .btn { padding: 15px 40px; font-size: 20px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin: 10px; width: 80%; max-width: 300px; transition: transform 0.1s; text-transform: uppercase; }
+        .btn { padding: 15px 30px; font-size: 18px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin: 10px; width: 85%; max-width: 300px; text-transform: uppercase; transition: transform 0.1s; }
         .btn:active { transform: scale(0.95); }
-        .btn-host { background: linear-gradient(45deg, #00E676, #00C853); color: #003300; box-shadow: 0 5px 15px rgba(0,230,118,0.4); }
-        .btn-join { background: linear-gradient(45deg, #2979FF, #2962FF); color: white; box-shadow: 0 5px 15px rgba(41,121,255,0.4); }
+        .btn-host { background: linear-gradient(45deg, #00E676, #00C853); color: #003300; box-shadow: 0 0 15px rgba(0,230,118,0.3); }
+        .btn-join { background: linear-gradient(45deg, #2979FF, #2962FF); color: white; box-shadow: 0 0 15px rgba(41,121,255,0.3); }
 
-        .join-box { background: rgba(255,255,255,0.1); padding: 20px; border-radius: 20px; margin-top: 20px; display: none; flex-direction: column; gap: 10px; }
-        .code-input { padding: 15px; border-radius: 10px; border: 2px solid #555; background: #000; color: white; font-size: 20px; text-align: center; text-transform: uppercase; letter-spacing: 2px; }
+        .input-group { display: flex; flex-direction: column; gap: 10px; width: 85%; max-width: 300px; display: none; }
+        .code-input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; font-size: 16px; text-align: center; letter-spacing: 1px; }
 
-        /* --- 2. LOBBY SCREEN (Character Select) --- */
-        #lobby-screen { background: #1a1a1a; padding: 20px; }
-        .lobby-header { text-align: center; font-family: 'Teko'; font-size: 40px; margin-bottom: 20px; color: #aaa; }
-        .char-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(80px, 1fr)); gap: 15px; width: 100%; max-width: 600px; margin: 0 auto; }
+        /* --- 2. LOBBY SCREEN --- */
+        #lobby-screen { background: #111; padding: 20px; }
+        .lobby-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .room-code { font-family: monospace; color: #FFD700; font-size: 20px; background: #222; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
         
-        .char-card { background: #333; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; position: relative; opacity: 0.7; }
-        .char-card:hover { opacity: 1; background: #444; }
-        .char-card.selected { border-color: #FFD700; background: #444; transform: translateY(-5px); opacity: 1; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
+        .player-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; width: 100%; max-width: 600px; margin: 0 auto; }
+        .player-item { background: #222; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #555; }
+        .player-item.host { border-left-color: #FFD700; }
+        .player-item.me { background: #2a2a2a; }
         
-        .char-icon { font-size: 40px; display: block; margin-bottom: 5px; }
-        .char-name { font-size: 12px; font-weight: bold; color: #ddd; }
-        
-        .p-badge { position: absolute; top: -10px; right: -10px; background: red; font-size: 10px; padding: 3px 6px; border-radius: 4px; display: none; font-weight: bold; z-index: 10; box-shadow: 0 2px 5px rgba(0,0,0,0.5); }
-        .p1-badge { display: block; background: #00E676; color: black; }
-        .p2-badge { display: block; background: #2979FF; color: white; }
-
-        .lobby-status { margin-top: auto; text-align: center; padding: 20px; font-size: 18px; color: #888; }
-        .room-code-pill { background: #333; padding: 5px 15px; border-radius: 20px; font-family: monospace; color: #FFD700; display: inline-block; margin-top: 10px; cursor: pointer; }
+        .char-select-overlay { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; padding: 20px; border-top: 2px solid #333; transform: translateY(100%); transition: transform 0.3s; display: flex; flex-direction: column; align-items: center; }
+        .char-select-overlay.show { transform: translateY(0); }
+        .char-grid { display: flex; gap: 10px; overflow-x: auto; width: 100%; padding-bottom: 10px; justify-content: center; }
+        .char-btn { width: 60px; height: 60px; border-radius: 10px; border: 2px solid #444; background: #222; font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .char-btn.selected { border-color: #FFD700; background: #444; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
 
         /* --- 3. GAME SCREEN --- */
-        #game-screen { position: relative; overflow: hidden; background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%); }
+        #game-screen { background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%); }
         .bg-art { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
         .fort { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); width: 80%; height: 200px; background: #f0f0f0; border: 2px solid #ccc; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: flex-end; }
         .pillar { width: 20px; height: 100%; background: linear-gradient(to right, #ddd, #fff, #ddd); margin: 0 15px; }
@@ -58,11 +55,25 @@
         .flag-cloth { width: 30px; height: 20px; background: orange; position: absolute; top: 0; left: 0; }
         .floor { position: absolute; bottom: 0; width: 100%; height: 20%; background: #5D4037; border-top: 5px solid #3E2723; z-index: 1; }
 
+        /* Spectator Badge */
+        #spec-badge { position: absolute; top: 70px; width: 100%; text-align: center; background: rgba(0,0,0,0.7); color: #FFD700; padding: 5px; font-size: 14px; font-weight: bold; display: none; z-index: 90; }
+
+        /* UPCOMING MATCHES LIST */
+        #match-queue {
+            position: absolute; top: 70px; right: 10px; 
+            background: rgba(0,0,0,0.8); border: 1px solid #444; 
+            padding: 10px; border-radius: 8px; z-index: 90;
+            max-width: 150px; font-size: 12px; display: none;
+        }
+        .q-title { color: #aaa; border-bottom: 1px solid #555; margin-bottom: 5px; padding-bottom: 2px; font-weight: bold; }
+        .q-item { color: white; margin-bottom: 2px; }
+        .q-me { color: #FFD700; font-weight: bold; }
+
         /* HUD */
         .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; z-index: 20; }
         .hp-container { width: 45%; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 8px; backdrop-filter: blur(5px); }
-        .hp-name { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: white; }
-        .hp-bar-bg { width: 100%; height: 15px; background: #333; border-radius: 10px; overflow: hidden; }
+        .hp-name { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: white; justify-content: space-between; }
+        .hp-bar-bg { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; }
         .hp-fill { height: 100%; width: 100%; background: #00E676; transition: width 0.1s linear; }
         
         /* Fighters */
@@ -84,70 +95,66 @@
         .hit { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: translateX(-5px); }
         .ko { transform: rotate(90deg) translateY(50px); filter: grayscale(1); }
 
-        /* --- MOBILE CONTROLS --- */
-        #mobile-controls {
-            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
-            z-index: 50; display: none; flex-direction: column; justify-content: flex-end;
-            padding: 20px; pointer-events: none;
-        }
-        
+        /* Controls */
+        #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; flex-direction: column; justify-content: flex-end; padding: 20px; pointer-events: none; }
         .ctrl-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px; pointer-events: auto; }
         .d-pad { display: flex; gap: 20px; }
         .action-pad { display: flex; gap: 20px; }
 
-        .c-btn {
-            width: 70px; height: 70px; border-radius: 50%;
-            background: rgba(255,255,255,0.2); border: 2px solid rgba(255,255,255,0.5);
-            backdrop-filter: blur(5px); color: white; font-size: 24px;
-            display: flex; align-items: center; justify-content: center;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3); transition: transform 0.1s;
-        }
-        .c-btn:active { background: rgba(255,255,255,0.4); transform: scale(0.95); }
-        .btn-atk { background: rgba(255, 50, 50, 0.4); border-color: #ff5555; }
-        .btn-jump { background: rgba(50, 255, 50, 0.4); border-color: #55ff55; }
-        
-        /* PC Controls Hint */
-        #pc-hint { position: absolute; top: 80px; width: 100%; text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); z-index: 15; display: none; }
+        .c-btn { width: 65px; height: 65px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .c-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.95); }
+        .btn-atk { background: rgba(255, 50, 50, 0.3); border-color: #ff5555; }
+        .btn-jump { background: rgba(50, 255, 50, 0.3); border-color: #55ff55; }
+
+        /* PC Hint */
+        #pc-hint { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 12px; color: rgba(0,0,0,0.5); z-index: 15; display: none; }
 
         /* Win Overlay */
         #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
-        .win-title { font-family: 'Teko'; font-size: 80px; color: #FFD700; line-height: 1; }
-        .win-sub { font-size: 30px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; text-transform: uppercase; letter-spacing: 2px; }
+        .win-title { font-family: 'Teko'; font-size: 70px; color: #FFD700; line-height: 1; }
+        .win-sub { font-size: 24px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; letter-spacing: 2px; }
+        
+        .leaderboard { width: 80%; background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #444; color: #aaa; font-size: 14px; }
     </style>
 </head>
 <body>
 
-    <!-- 1. MAIN MENU -->
+    <!-- 1. MENU -->
     <div id="menu-screen" class="screen active">
         <div class="logo-box">
             <div class="logo-main">Assembly<br>Kombat</div>
-            <div class="logo-sub">ULTIMATE</div>
+            <div class="logo-sub">IPL TOURNAMENT</div>
         </div>
         
-        <button class="btn btn-host" onclick="initHost()">Host Game</button>
-        <button class="btn btn-join" onclick="document.querySelector('.join-box').style.display = 'flex'">Join Game</button>
+        <button class="btn btn-host" onclick="initHost()">Host Tournament</button>
+        <button class="btn btn-join" onclick="showJoin()">Join Tournament</button>
         
-        <div class="join-box">
-            <input type="text" id="join-code" class="code-input" placeholder="Enter Code" maxlength="4">
-            <button class="btn btn-join" style="width:100%; margin:0;" onclick="joinGame()">Connect</button>
+        <div class="input-group" id="join-inputs">
+            <input type="text" id="p-name" class="code-input" placeholder="YOUR NAME" maxlength="10">
+            <input type="text" id="join-code" class="code-input" placeholder="ROOM CODE" maxlength="4">
+            <button class="btn btn-join" style="width:100%; margin:0;" onclick="joinGame()">Enter Arena</button>
         </div>
     </div>
 
-    <!-- 2. LOBBY SCREEN -->
+    <!-- 2. LOBBY -->
     <div id="lobby-screen" class="screen">
-        <div class="lobby-header">SELECT LEADER</div>
-        
-        <div class="char-grid" id="char-grid"></div>
-
-        <div class="lobby-status">
-            <div id="lobby-msg">Waiting for opponent...</div>
-            <div class="room-code-pill" id="room-code-display" onclick="copyCode()">CODE: ....</div>
+        <div class="lobby-header">
+            <div style="font-family:'Teko'; font-size:30px;">LOBBY</div>
+            <div class="room-code" id="room-code-display" onclick="copyCode()">CODE: ....</div>
         </div>
         
-        <button id="start-btn" class="btn btn-host" style="width:100%; max-width:100%; display:none;" onclick="requestStart()">START MATCH</button>
+        <div class="player-list" id="player-list"></div>
+
+        <button id="start-btn" class="btn btn-host" style="width:100%; max-width:600px; margin: 20px auto; display:none;" onclick="startTournament()">START IPL MATCH</button>
+
+        <div class="char-select-overlay" id="char-select">
+            <div style="color:#aaa; margin-bottom:10px; font-size:12px;">CHOOSE YOUR LEADER</div>
+            <div class="char-grid" id="char-grid"></div>
+        </div>
     </div>
 
-    <!-- 3. GAME SCREEN -->
+    <!-- 3. GAME -->
     <div id="game-screen" class="screen">
         <div class="bg-art">
             <div class="fort">
@@ -157,15 +164,21 @@
             <div class="floor"></div>
         </div>
 
-        <div id="pc-hint">PC: ARROWS (Move) | SPACE (Jump) | CTRL (Punch) | SHIFT (Kick)</div>
+        <div id="spec-badge">SPECTATING MATCH...</div>
+        <div id="match-queue">
+            <div class="q-title">UPCOMING</div>
+            <div id="q-list"></div>
+        </div>
+
+        <div id="pc-hint">ARROWS: Move | SPACE: Jump | CTRL: Punch | SHIFT: Kick</div>
 
         <div class="hud">
             <div class="hp-container">
-                <div class="hp-name"><span id="p1-icon">🦁</span> <span id="p1-name">VIJAY</span></div>
+                <div class="hp-name"><span id="p1-name">P1</span> <span id="p1-char">🦁</span></div>
                 <div class="hp-bar-bg"><div id="hp-p1" class="hp-fill"></div></div>
             </div>
             <div class="hp-container" style="text-align:right; align-items: flex-end; display:flex; flex-direction:column;">
-                <div class="hp-name"><span id="p2-name">OPPONENT</span> <span id="p2-icon">🐯</span></div>
+                <div class="hp-name"><span id="p2-name">P2</span> <span id="p2-char">🐯</span></div>
                 <div class="hp-bar-bg"><div id="hp-p2" class="hp-fill"></div></div>
             </div>
         </div>
@@ -179,7 +192,6 @@
             <div class="body"></div><div class="arm-l limb"></div><div class="arm-r limb"></div><div class="leg-l limb"></div><div class="leg-r limb"></div>
         </div>
 
-        <!-- Controls -->
         <div id="mobile-controls">
             <div class="ctrl-row">
                 <div class="d-pad">
@@ -196,332 +208,471 @@
 
         <div id="win-overlay">
             <div class="win-title" id="win-title">VIJAY WINS</div>
-            <div class="win-sub">CM OF TAMIL NADU 2026</div>
-            <button class="btn btn-host" onclick="requestRematch()">BACK TO LOBBY</button>
+            <div class="win-sub">CM FOR 2026</div>
+            
+            <div class="leaderboard">
+                <div class="lb-row" style="color:#FFD700; font-weight:bold;"><span>PLAYER</span><span>WINS</span></div>
+                <div id="lb-content"></div>
+            </div>
+
+            <button class="btn btn-host" id="next-match-btn" style="display:none;" onclick="nextMatch()">NEXT MATCH</button>
+            <div id="wait-msg" style="color:#aaa; font-size:14px; margin-top:10px; display:none;">Waiting for Host...</div>
         </div>
     </div>
 
     <script>
+        // --- CONFIG ---
         const CHARS = [
             { id: 'vijay', name: 'VIJAY', color: 'gold', icon: '🦁' },
             { id: 'stalin', name: 'STALIN', color: '#ff3333', icon: '☀️' },
             { id: 'eps', name: 'EPS', color: '#00cc00', icon: '🍃' },
-            { id: 'anna', name: 'ANNAMALAI', color: '#ff9900', icon: '🪷' },
+            { id: 'anna', name: 'ANNA', color: '#ff9900', icon: '🪷' },
             { id: 'seeman', name: 'SEEMAN', color: '#333', icon: '🐯' }
         ];
 
-        let role = null; 
-        let peer = null, conn = null;
-        let myChar = null, oppChar = null;
-        
-        // PHYSICS CONSTANTS
-        const GRAVITY = 0.8;
-        const JUMP_FORCE = 15;
-        const MOVE_SPEED = 1.0;
-        const GROUND_Y = 20; // % from bottom
+        // PHYSICS TUNING
+        const GRAVITY = 0.6;
+        const JUMP_FORCE = 12; 
+        const MOVE_SPEED = 0.6; 
+        const GROUND_Y = 20;
 
+        // --- STATE ---
+        let myId = null;
+        let myName = "Player";
+        let myChar = CHARS[0];
+        let role = 'guest'; 
+        let peer = null;
+        
+        // Host Data
+        let connections = []; 
+        let players = []; 
+        let currentMatch = { p1: null, p2: null }; 
+        let tournamentStarted = false; // LOCK
+        
         // Game State
         let gameState = {
-            p1: { x: 20, y: 0, vy: 0, hp: 100, action: null },
-            p2: { x: 80, y: 0, vy: 0, hp: 100, action: null },
-            active: false
+            p1: { x: 20, y: 0, vy: 0, hp: 100, action: null, id: null },
+            p2: { x: 80, y: 0, vy: 0, hp: 100, action: null, id: null },
+            active: false,
+            winner: null
         };
         
-        // Input State
-        let inputs = { left: false, right: false, jump: false };
+        let inputs = { left: false, right: false };
 
         function isMobile() { return /Android|iPhone|iPad/i.test(navigator.userAgent); }
 
-        // --- SETUP ---
-        function renderLobby() {
-            const grid = document.getElementById('char-grid');
-            grid.innerHTML = '';
-            CHARS.forEach(c => {
-                const el = document.createElement('div');
-                el.className = 'char-card';
-                el.id = `char-${c.id}`;
-                el.innerHTML = `<span class="char-icon">${c.icon}</span><div class="char-name">${c.name}</div>
-                                <div id="badge-${c.id}-p1" class="p-badge p1-badge">P1</div>
-                                <div id="badge-${c.id}-p2" class="p-badge p2-badge">P2</div>`;
-                el.onclick = () => selectChar(c.id);
-                grid.appendChild(el);
-            });
-        }
-        renderLobby();
-
+        // --- UI ---
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
-            
-            // Auto Adapt Controls
-            if(id === 'game-screen') {
-                if(isMobile()) {
-                    document.getElementById('mobile-controls').style.display = 'flex';
-                } else {
-                    document.getElementById('pc-hint').style.display = 'block';
-                    setupPCControls();
-                }
-            }
         }
 
-        // --- PEER JS ---
-        function generateId() {
-            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
-            let r = ""; for(let i=0;i<4;i++) r += chars[Math.floor(Math.random()*chars.length)];
-            return r;
+        function showJoin() { document.getElementById('join-inputs').style.display = 'flex'; }
+
+        function renderCharGrid() {
+            const g = document.getElementById('char-grid');
+            g.innerHTML = '';
+            CHARS.forEach(c => {
+                const b = document.createElement('div');
+                b.className = 'char-btn';
+                b.innerText = c.icon;
+                b.onclick = () => selectChar(c);
+                if(c.id === myChar.id) b.classList.add('selected');
+                g.appendChild(b);
+            });
         }
+        renderCharGrid();
+
+        function selectChar(c) {
+            myChar = c;
+            renderCharGrid();
+            if(role === 'guest' && peer) sendToHost({ type: 'update_profile', name: myName, char: c });
+            if(role === 'host') updateMyProfileHost();
+        }
+
+        // --- HOST LOGIC ---
+        function generateId() { return Math.random().toString(36).substring(2,6).toUpperCase(); }
 
         function initHost() {
             role = 'host';
-            const code = generateId();
-            peer = new Peer(code);
+            myId = generateId(); 
+            myName = "HOST";
+            
+            players.push({ id: 'HOST', name: myName, char: myChar, wins: 0, conn: null });
+
+            peer = new Peer(myId);
             peer.on('open', (id) => {
                 switchScreen('lobby-screen');
                 document.getElementById('room-code-display').innerText = `CODE: ${id}`;
-                document.getElementById('lobby-msg').innerText = "Share Code. Waiting for Player 2...";
+                document.getElementById('char-select').classList.add('show');
+                renderPlayerList();
+                document.getElementById('start-btn').style.display = 'block';
             });
-            peer.on('connection', (c) => {
-                conn = c;
-                setupConnection();
-                document.getElementById('lobby-msg').innerText = "PLAYER 2 CONNECTED! SELECT LEADER.";
-            });
-        }
 
-        function joinGame() {
-            role = 'guest';
-            const code = document.getElementById('join-code').value.toUpperCase();
-            if(code.length !== 4) return alert("Invalid Code");
-            peer = new Peer();
-            peer.on('open', () => {
-                conn = peer.connect(code);
-                conn.on('open', () => {
-                    setupConnection();
-                    switchScreen('lobby-screen');
-                    document.getElementById('room-code-display').innerText = `CONNECTED TO: ${code}`;
-                    document.getElementById('lobby-msg').innerText = "CONNECTED! SELECT LEADER.";
+            peer.on('connection', (conn) => {
+                conn.on('data', (data) => {
+                    if(data.type === 'join') {
+                        if(tournamentStarted) {
+                            conn.send({ type: 'reject', msg: 'Match in Progress! Locked.' });
+                            return;
+                        }
+                        connections.push(conn); // Only add if not started
+                        players.push({ id: conn.peer, name: data.name, char: data.char, wins: 0, conn: conn });
+                        broadcastLobby();
+                    }
+                    if(data.type === 'update_profile') {
+                        const p = players.find(x => x.id === conn.peer);
+                        if(p) { p.name = data.name; p.char = data.char; }
+                        broadcastLobby();
+                    }
+                    if(data.type === 'input') {
+                        handleInput(conn.peer, data);
+                    }
                 });
             });
         }
 
-        function setupConnection() {
-            conn.on('data', (data) => {
-                if(data.type === 'select') {
-                    oppChar = CHARS.find(c => c.id === data.id);
-                    updateBadges(data.id, role === 'host' ? 'p2' : 'p1');
-                    checkStart();
-                }
-                if(data.type === 'start') startGame();
-                if(data.type === 'rematch') resetLobby();
-                if(data.type === 'input' && role === 'host') handleGuestInput(data);
-                if(data.type === 'sync' && role === 'guest') renderGame(data.state);
+        function updateMyProfileHost() {
+            players[0].char = myChar;
+            broadcastLobby();
+        }
+
+        function broadcastLobby() {
+            renderPlayerList();
+            const cleanList = players.map(p => ({ id: p.id, name: p.name, char: p.char, wins: p.wins }));
+            connections.forEach(c => c.send({ type: 'lobby_update', players: cleanList }));
+        }
+
+        function renderPlayerList() {
+            const list = document.getElementById('player-list');
+            list.innerHTML = '';
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `player-item ${p.id === 'HOST' ? 'host' : ''}`;
+                div.innerHTML = `<div><span style="font-size:20px">${p.char.icon}</span> <b>${p.name}</b></div> <div>Wins: ${p.wins}</div>`;
+                list.appendChild(div);
             });
         }
 
-        // --- LOBBY ---
-        function selectChar(id) {
-            myChar = CHARS.find(c => c.id === id);
-            document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
-            document.getElementById(`char-${id}`).classList.add('selected');
-            updateBadges(id, role === 'host' ? 'p1' : 'p2');
-            if(conn) conn.send({ type: 'select', id: id });
-            checkStart();
+        function startTournament() {
+            if(players.length < 2) return alert("Need at least 2 players!");
+            
+            tournamentStarted = true; // LOCK LOBBY
+            
+            // Initial Match: P1 vs P2
+            currentMatch.p1 = players[0].id;
+            currentMatch.p2 = players[1].id;
+            
+            startMatch();
         }
 
-        function updateBadges(charId, playerRole) {
-            const badgeClass = playerRole === 'p1' ? '.p1-badge' : '.p2-badge';
-            document.querySelectorAll(badgeClass).forEach(e => e.style.display = 'none');
-            document.getElementById(`badge-${charId}-${playerRole}`).style.display = 'block';
+        function startMatch() {
+            gameState.p1 = { x: 20, y: 0, vy: 0, hp: 100, action: null, id: currentMatch.p1 };
+            gameState.p2 = { x: 80, y: 0, vy: 0, hp: 100, action: null, id: currentMatch.p2 };
+            gameState.active = true;
+            gameState.winner = null;
+
+            const p1Obj = players.find(p => p.id === currentMatch.p1);
+            const p2Obj = players.find(p => p.id === currentMatch.p2);
+            
+            // Queue: Everyone after the first 2
+            const queueNames = players.slice(2).map(p => p.name);
+
+            const matchData = { 
+                p1: { name: p1Obj.name, char: p1Obj.char, id: p1Obj.id },
+                p2: { name: p2Obj.name, char: p2Obj.char, id: p2Obj.id },
+                queue: queueNames
+            };
+
+            const payload = { type: 'match_start', match: matchData };
+            connections.forEach(c => c.send(payload));
+            
+            setupGameUI(matchData);
+            requestAnimationFrame(gameLoop);
         }
 
-        function checkStart() {
-            if(myChar && oppChar && role === 'host') document.getElementById('start-btn').style.display = 'block';
+        function nextMatch() {
+            const winnerId = gameState.winner;
+            const loserId = (currentMatch.p1 === winnerId) ? currentMatch.p2 : currentMatch.p1;
+            
+            // Loser to end
+            const loserIndex = players.findIndex(p => p.id === loserId);
+            const loserObj = players.splice(loserIndex, 1)[0];
+            players.push(loserObj);
+            
+            // Winner to front
+            const winnerIndex = players.findIndex(p => p.id === winnerId);
+            const winnerObj = players.splice(winnerIndex, 1)[0];
+            players.unshift(winnerObj);
+            
+            broadcastLobby(); 
+
+            currentMatch.p1 = players[0].id;
+            currentMatch.p2 = players[1].id;
+            
+            document.getElementById('win-overlay').style.display = 'none';
+            startMatch();
         }
 
-        function requestStart() { conn.send({ type: 'start' }); startGame(); }
-        function requestRematch() { if(conn) conn.send({ type: 'rematch' }); resetLobby(); }
-        function resetLobby() { gameState.active = false; document.getElementById('win-overlay').style.display = 'none'; switchScreen('lobby-screen'); }
+        // --- GUEST LOGIC ---
+        function joinGame() {
+            role = 'guest';
+            myName = document.getElementById('p-name').value || "Guest";
+            const code = document.getElementById('join-code').value.toUpperCase();
+            if(!code) return alert("Enter Code");
 
-        // --- GAME START ---
-        function startGame() {
-            gameState.p1 = { x: 20, y: 0, vy: 0, hp: 100, action: null };
-            gameState.p2 = { x: 80, y: 0, vy: 0, hp: 100, action: null };
-            
-            switchScreen('game-screen');
-            
-            const p1 = role === 'host' ? myChar : oppChar;
-            const p2 = role === 'host' ? oppChar : myChar;
-            
-            document.getElementById('p1-name').innerText = p1.name;
-            document.getElementById('p1-icon').innerText = p1.icon;
-            document.getElementById('sash-p1').style.background = p1.color;
-            
-            document.getElementById('p2-name').innerText = p2.name;
-            document.getElementById('p2-icon').innerText = p2.icon;
-            document.getElementById('sash-p2').style.background = p2.color;
-
-            if(role === 'host') {
-                gameState.active = true;
-                requestAnimationFrame(gameLoop);
-            }
-        }
-
-        // --- INPUTS (PC & MOBILE) ---
-        function setupPCControls() {
-            window.addEventListener('keydown', (e) => {
-                if(e.repeat) return;
-                switch(e.key) {
-                    case 'ArrowLeft': inputs.left = true; updateMoveInput(); break;
-                    case 'ArrowRight': inputs.right = true; updateMoveInput(); break;
-                    case ' ': inputStart('jump'); break;
-                    case 'Control': inputStart('punch'); break;
-                    case 'Shift': inputStart('kick'); break;
-                }
+            peer = new Peer();
+            peer.on('open', (id) => {
+                myId = id;
+                const conn = peer.connect(code);
+                conn.on('open', () => {
+                    peer.conn = conn; 
+                    conn.send({ type: 'join', name: myName, char: myChar });
+                    // Wait for acceptance
+                });
+                
+                conn.on('data', (data) => {
+                    if(data.type === 'reject') {
+                        alert(data.msg);
+                        location.reload();
+                    }
+                    if(data.type === 'lobby_update') {
+                        switchScreen('lobby-screen'); // Valid join
+                        document.getElementById('room-code-display').innerText = `CONNECTED: ${code}`;
+                        document.getElementById('char-select').classList.add('show');
+                        players = data.players;
+                        renderPlayerList();
+                    }
+                    if(data.type === 'match_start') {
+                        setupGameUI(data.match);
+                    }
+                    if(data.type === 'sync') {
+                        renderGame(data.state);
+                    }
+                });
             });
-            window.addEventListener('keyup', (e) => {
-                switch(e.key) {
-                    case 'ArrowLeft': inputs.left = false; updateMoveInput(); break;
-                    case 'ArrowRight': inputs.right = false; updateMoveInput(); break;
-                }
-            });
-        }
-
-        function inputStart(action) {
-            if(action === 'punch' || action === 'kick' || action === 'jump') {
-                sendInput({ type: action });
-            } else {
-                inputs[action] = true;
-                updateMoveInput();
-            }
-        }
-        function inputEnd(action) {
-            inputs[action] = false;
-            updateMoveInput();
         }
         
-        function updateMoveInput() {
-            let dir = 0;
-            if(inputs.left) dir = -1;
-            if(inputs.right) dir = 1;
-            sendInput({ type: 'move', dir: dir });
+        function sendToHost(msg) {
+            if(peer && peer.conn) peer.conn.send(msg);
         }
 
-        function sendInput(data) {
-            if(role === 'guest') conn.send({ type: 'input', ...data });
-            else handleHostInput(data);
+        // --- GAMEPLAY UI ---
+        function setupGameUI(match) {
+            switchScreen('game-screen');
+            document.getElementById('win-overlay').style.display = 'none';
+
+            document.getElementById('p1-name').innerText = match.p1.name;
+            document.getElementById('p1-char').innerText = match.p1.char.icon;
+            document.getElementById('sash-p1').style.background = match.p1.char.color;
+            
+            document.getElementById('p2-name').innerText = match.p2.name;
+            document.getElementById('p2-char').innerText = match.p2.char.icon;
+            document.getElementById('sash-p2').style.background = match.p2.char.color;
+            
+            // Setup Queue List
+            const qList = document.getElementById('q-list');
+            qList.innerHTML = '';
+            if(match.queue && match.queue.length > 0) {
+                document.getElementById('match-queue').style.display = 'block';
+                match.queue.forEach((name, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-item';
+                    if(name === myName) div.classList.add('q-me');
+                    div.innerText = `${i+1}. ${name}`;
+                    qList.appendChild(div);
+                });
+            } else {
+                document.getElementById('match-queue').style.display = 'none';
+            }
+
+            let amIPlaying = false;
+            
+            if(role === 'host') {
+                if(match.p1.id === 'HOST' || match.p2.id === 'HOST') amIPlaying = true;
+            } else {
+                if(match.p1.id === myId || match.p2.id === myId) amIPlaying = true;
+            }
+
+            if(amIPlaying) {
+                document.getElementById('spec-badge').style.display = 'none';
+                if(isMobile()) document.getElementById('mobile-controls').style.display = 'flex';
+                else {
+                    document.getElementById('pc-hint').style.display = 'block';
+                    setupPCControls();
+                }
+            } else {
+                // Spectator
+                document.getElementById('spec-badge').style.display = 'block';
+                document.getElementById('mobile-controls').style.display = 'none';
+                document.getElementById('pc-hint').style.display = 'none';
+                window.onkeydown = null; 
+            }
         }
 
-        // --- HOST LOGIC ---
-        let p1Input = { dir: 0 }, p2Input = { dir: 0 };
+        // --- GAME ENGINE ---
+        function handleInput(playerId, data) {
+            let pKey = null;
+            if(playerId === gameState.p1.id) pKey = 'p1';
+            if(playerId === gameState.p2.id) pKey = 'p2';
+            
+            if(!pKey) return; 
 
-        function handleHostInput(data) {
-            if(data.type === 'move') p1Input.dir = data.dir;
-            else if(data.type === 'jump') doJump('p1');
-            else if(data.type === 'punch' || data.type === 'kick') doAttack('p1', data.type);
-        }
-        function handleGuestInput(data) {
-            if(data.type === 'move') p2Input.dir = data.dir;
-            else if(data.type === 'jump') doJump('p2');
-            else if(data.type === 'punch' || data.type === 'kick') doAttack('p2', data.type);
+            if(data.type === 'move') {
+                if(!gameState.inputs) gameState.inputs = { p1: 0, p2: 0 };
+                gameState.inputs[pKey] = data.dir;
+            }
+            if(data.type === 'jump') doJump(pKey);
+            if(data.type === 'punch' || data.type === 'kick') doAttack(pKey, data.type);
         }
 
-        function doJump(player) {
+        function hostInput(data) { handleInput('HOST', data); }
+
+        function gameLoop() {
             if(!gameState.active) return;
-            const actor = gameState[player];
-            if(actor.y === 0) actor.vy = JUMP_FORCE; // Only jump if on ground
+
+            if(!gameState.inputs) gameState.inputs = { p1: 0, p2: 0 };
+
+            ['p1', 'p2'].forEach(key => {
+                const p = gameState[key];
+                const dir = gameState.inputs[key];
+
+                p.vy -= GRAVITY;
+                p.y += p.vy;
+                if(p.y < 0) { p.y = 0; p.vy = 0; }
+                if(dir !== 0 && !p.action) {
+                    p.x = Math.max(0, Math.min(90, p.x + (dir * MOVE_SPEED)));
+                }
+            });
+
+            const syncData = { type: 'sync', state: gameState };
+            connections.forEach(c => c.send(syncData));
+            renderGame(gameState);
+
+            requestAnimationFrame(gameLoop);
         }
 
-        function doAttack(player, type) {
-            if(!gameState.active) return;
-            const actor = gameState[player];
-            if(actor.action) return; 
+        function doJump(key) {
+            const p = gameState[key];
+            if(p.y <= 0.1) p.vy = JUMP_FORCE; 
+        }
 
+        function doAttack(key, type) {
+            const actor = gameState[key];
+            if(actor.action) return;
             actor.action = type;
             setTimeout(() => actor.action = null, 300);
 
-            // HIT DETECTION (Improved)
-            const p1 = gameState.p1;
-            const p2 = gameState.p2;
-            const dist = Math.abs(p1.x - p2.x);
-            const yDist = Math.abs(p1.y - p2.y);
-            
-            // Hit box: X < 20% and Y < 20% (must be somewhat vertically aligned)
-            if(dist < 20 && yDist < 20) { 
-                const victimKey = player === 'p1' ? 'p2' : 'p1';
+            const enemyKey = key === 'p1' ? 'p2' : 'p1';
+            const enemy = gameState[enemyKey];
+            const dx = Math.abs(actor.x - enemy.x);
+            const dy = Math.abs(actor.y - enemy.y);
+
+            if(dx < 15 && dy < 15) {
                 const dmg = type === 'punch' ? 5 : 10;
-                gameState[victimKey].hp = Math.max(0, gameState[victimKey].hp - dmg);
-                if(gameState[victimKey].hp <= 0) endGame(player);
+                enemy.hp = Math.max(0, enemy.hp - dmg);
+                if(enemy.hp <= 0) endGame(key);
             }
         }
 
         function endGame(winnerKey) {
             gameState.active = false;
-            const winner = winnerKey === 'p1' ? (role === 'host' ? myChar : oppChar) : (role === 'host' ? oppChar : myChar);
-            conn.send({ type: 'sync', state: gameState });
+            
+            const wId = gameState[winnerKey].id;
+            const winnerObj = players.find(p => p.id === wId);
+            winnerObj.wins++;
+            gameState.winner = wId;
+
+            const syncData = { type: 'sync', state: gameState };
+            connections.forEach(c => c.send(syncData));
             renderGame(gameState);
-            showWin(winner.name);
         }
 
-        function showWin(name) {
-            document.getElementById('win-overlay').style.display = 'flex';
-            document.getElementById('win-title').innerText = name + " WINS";
-        }
-
-        function gameLoop() {
-            if(!gameState.active) return;
-
-            // Update P1 Physics
-            gameState.p1.vy -= GRAVITY;
-            gameState.p1.y += gameState.p1.vy;
-            if(gameState.p1.y < 0) { gameState.p1.y = 0; gameState.p1.vy = 0; }
-            if(p1Input.dir !== 0) gameState.p1.x = Math.max(0, Math.min(90, gameState.p1.x + (p1Input.dir * MOVE_SPEED)));
-
-            // Update P2 Physics
-            gameState.p2.vy -= GRAVITY;
-            gameState.p2.y += gameState.p2.vy;
-            if(gameState.p2.y < 0) { gameState.p2.y = 0; gameState.p2.vy = 0; }
-            if(p2Input.dir !== 0) gameState.p2.x = Math.max(0, Math.min(90, gameState.p2.x + (p2Input.dir * MOVE_SPEED)));
-
-            conn.send({ type: 'sync', state: gameState });
-            renderGame(gameState);
-            requestAnimationFrame(gameLoop);
-        }
-
+        // --- RENDERER ---
         function renderGame(state) {
             document.getElementById('hp-p1').style.width = state.p1.hp + '%';
             document.getElementById('hp-p2').style.width = state.p2.hp + '%';
-
-            const elP1 = document.getElementById('f-p1');
-            const elP2 = document.getElementById('f-p2');
             
-            elP1.style.left = state.p1.x + '%';
-            elP1.style.bottom = (20 + state.p1.y/2) + '%'; // 20 is ground level
-
-            elP2.style.left = state.p2.x + '%'; 
-            elP2.style.bottom = (20 + state.p2.y/2) + '%';
-
-            updateAnim(elP1, state.p1.action);
-            updateAnim(elP2, state.p2.action);
+            const e1 = document.getElementById('f-p1');
+            const e2 = document.getElementById('f-p2');
             
-            if(state.p1.hp <= 0) elP1.classList.add('ko');
-            if(state.p2.hp <= 0) elP2.classList.add('ko');
+            e1.style.left = state.p1.x + '%';
+            e1.style.bottom = (20 + state.p1.y/2) + '%';
+            e2.style.left = state.p2.x + '%';
+            e2.style.bottom = (20 + state.p2.y/2) + '%';
             
-            if(!state.active && (state.p1.hp <= 0 || state.p2.hp <= 0)) {
-                let w = state.p1.hp > 0 ? (role==='host'?myChar.name:oppChar.name) : (role==='host'?oppChar.name:myChar.name);
-                showWin(w);
+            setAnim(e1, state.p1.action);
+            setAnim(e2, state.p2.action);
+            
+            if(!state.active && state.winner) {
+                document.getElementById('win-overlay').style.display = 'flex';
+                const wObj = players.find(p => p.id === state.winner);
+                document.getElementById('win-title').innerText = wObj ? wObj.name : "WINNER";
+                
+                // Show Leaderboard
+                const lb = document.getElementById('lb-content');
+                lb.innerHTML = '';
+                const sorted = [...players].sort((a,b) => b.wins - a.wins);
+                sorted.forEach(p => {
+                    const r = document.createElement('div');
+                    r.className = 'lb-row';
+                    r.innerHTML = `<span>${p.name}</span> <span>${p.wins}</span>`;
+                    lb.appendChild(r);
+                });
+
+                if(role === 'host') {
+                    document.getElementById('next-match-btn').style.display = 'block';
+                    document.getElementById('wait-msg').style.display = 'none';
+                } else {
+                    document.getElementById('next-match-btn').style.display = 'none';
+                    document.getElementById('wait-msg').style.display = 'block';
+                }
             }
         }
 
-        function updateAnim(el, action) {
+        function setAnim(el, act) {
             el.classList.remove('punching', 'kicking');
-            if(action === 'punch') el.classList.add('punching');
-            if(action === 'kick') el.classList.add('kicking');
+            if(act === 'punch') el.classList.add('punching');
+            if(act === 'kick') el.classList.add('kicking');
         }
 
+        // --- CONTROLS ---
+        function setupPCControls() {
+            window.onkeydown = (e) => {
+                if(e.repeat) return;
+                const code = e.key;
+                let data = null;
+                if(code === 'ArrowLeft') data = { type: 'move', dir: -1 };
+                if(code === 'ArrowRight') data = { type: 'move', dir: 1 };
+                if(code === ' ') data = { type: 'jump' };
+                if(code === 'Control') data = { type: 'punch' };
+                if(code === 'Shift') data = { type: 'kick' };
+
+                if(data) sendInput(data);
+            };
+            window.onkeyup = (e) => {
+                if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') sendInput({ type: 'move', dir: 0 });
+            };
+        }
+
+        function inputStart(act) {
+            if(act==='left') sendInput({ type:'move', dir: -1 });
+            else if(act==='right') sendInput({ type:'move', dir: 1 });
+            else sendInput({ type: act });
+        }
+        function inputEnd(act) {
+            if(act==='left'||act==='right') sendInput({ type:'move', dir: 0 });
+        }
+
+        function sendInput(data) {
+            if(role === 'host') hostInput(data);
+            else sendToHost({ type: 'input', ...data });
+        }
+        
         function copyCode() {
-            navigator.clipboard.writeText(peer.id);
-            alert("Copied Code!");
+            navigator.clipboard.writeText(myId);
+            alert("Code Copied!");
         }
-
     </script>
 </body>
 </html>
