@@ -36,8 +36,6 @@
         
         .char-card { background: #333; border-radius: 10px; padding: 10px; text-align: center; cursor: pointer; border: 3px solid transparent; transition: all 0.2s; position: relative; opacity: 0.7; }
         .char-card:hover { opacity: 1; background: #444; }
-        
-        /* SELECTED STATE: Glows Gold */
         .char-card.selected { border-color: #FFD700; background: #444; transform: translateY(-5px); opacity: 1; box-shadow: 0 0 15px rgba(255, 215, 0, 0.3); }
         
         .char-icon { font-size: 40px; display: block; margin-bottom: 5px; }
@@ -52,21 +50,10 @@
 
         /* --- 3. GAME SCREEN --- */
         #game-screen { position: relative; overflow: hidden; background: linear-gradient(to bottom, #87CEEB 0%, #E0F7FA 100%); }
-
-        /* Decent Background: TN Assembly Vector Art */
         .bg-art { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 0; }
-        .fort { 
-            position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); 
-            width: 80%; height: 200px; background: #f0f0f0; 
-            border: 2px solid #ccc; box-shadow: 0 10px 20px rgba(0,0,0,0.1);
-            display: flex; justify-content: center; align-items: flex-end;
-        }
+        .fort { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); width: 80%; height: 200px; background: #f0f0f0; border: 2px solid #ccc; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: flex-end; }
         .pillar { width: 20px; height: 100%; background: linear-gradient(to right, #ddd, #fff, #ddd); margin: 0 15px; }
-        .dome { 
-            position: absolute; top: -60px; left: 50%; transform: translateX(-50%); 
-            width: 100px; height: 60px; background: #fff; 
-            border-radius: 50px 50px 0 0; border: 2px solid #ccc; border-bottom: none;
-        }
+        .dome { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 100px; height: 60px; background: #fff; border-radius: 50px 50px 0 0; border: 2px solid #ccc; border-bottom: none; }
         .flag { position: absolute; top: -100px; left: 50%; height: 40px; width: 2px; background: #333; }
         .flag-cloth { width: 30px; height: 20px; background: orange; position: absolute; top: 0; left: 0; }
         .floor { position: absolute; bottom: 0; width: 100%; height: 20%; background: #5D4037; border-top: 5px solid #3E2723; z-index: 1; }
@@ -79,11 +66,10 @@
         .hp-fill { height: 100%; width: 100%; background: #00E676; transition: width 0.1s linear; }
         
         /* Fighters */
-        .fighter { width: 80px; height: 140px; position: absolute; bottom: 20%; z-index: 10; transition: transform 0.1s; will-change: left; }
+        .fighter { width: 80px; height: 140px; position: absolute; bottom: 20%; z-index: 10; transition: transform 0.1s; will-change: left, bottom; }
         .f-p1 { left: 20%; }
         .f-p2 { right: 20%; transform: scaleX(-1); }
 
-        /* Minimal Stickman */
         .head { width: 30px; height: 30px; background: #FFCCBC; border-radius: 50%; border: 2px solid #333; position: absolute; top: 0; left: 25px; z-index: 2; }
         .body { width: 34px; height: 50px; background: #333; border-radius: 5px; position: absolute; top: 28px; left: 23px; z-index: 1; }
         .sash { width: 34px; height: 50px; position: absolute; top: 28px; left: 23px; z-index: 2; opacity: 0.9; }
@@ -93,21 +79,19 @@
         .leg-l { top: 75px; left: 25px; transform-origin: top; }
         .leg-r { top: 75px; right: 25px; transform-origin: top; }
 
-        /* Animations */
         .punching .arm-r { transform: rotate(-90deg); background: #fff; }
         .kicking .leg-r { transform: rotate(-90deg); background: #fff; }
         .hit { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: translateX(-5px); }
         .ko { transform: rotate(90deg) translateY(50px); filter: grayscale(1); }
 
-        /* --- MOBILE CONTROLS (Overlaid on Game) --- */
+        /* --- MOBILE CONTROLS --- */
         #mobile-controls {
             position: absolute; bottom: 0; left: 0; width: 100%; height: 100%;
-            z-index: 50; display: flex; flex-direction: column; justify-content: flex-end;
-            padding: 20px; pointer-events: none; /* Let touches pass to buttons */
+            z-index: 50; display: none; flex-direction: column; justify-content: flex-end;
+            padding: 20px; pointer-events: none;
         }
         
         .ctrl-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px; pointer-events: auto; }
-        
         .d-pad { display: flex; gap: 20px; }
         .action-pad { display: flex; gap: 20px; }
 
@@ -120,11 +104,15 @@
         }
         .c-btn:active { background: rgba(255,255,255,0.4); transform: scale(0.95); }
         .btn-atk { background: rgba(255, 50, 50, 0.4); border-color: #ff5555; }
+        .btn-jump { background: rgba(50, 255, 50, 0.4); border-color: #55ff55; }
         
+        /* PC Controls Hint */
+        #pc-hint { position: absolute; top: 80px; width: 100%; text-align: center; font-size: 12px; color: rgba(255,255,255,0.5); z-index: 15; display: none; }
+
         /* Win Overlay */
-        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; }
+        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
         .win-title { font-family: 'Teko'; font-size: 80px; color: #FFD700; line-height: 1; }
-        .win-sub { font-size: 20px; color: #fff; margin-bottom: 30px; }
+        .win-sub { font-size: 30px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; text-transform: uppercase; letter-spacing: 2px; }
     </style>
 </head>
 <body>
@@ -149,9 +137,7 @@
     <div id="lobby-screen" class="screen">
         <div class="lobby-header">SELECT LEADER</div>
         
-        <div class="char-grid" id="char-grid">
-            <!-- Generated by JS -->
-        </div>
+        <div class="char-grid" id="char-grid"></div>
 
         <div class="lobby-status">
             <div id="lobby-msg">Waiting for opponent...</div>
@@ -163,7 +149,6 @@
 
     <!-- 3. GAME SCREEN -->
     <div id="game-screen" class="screen">
-        <!-- Background Art -->
         <div class="bg-art">
             <div class="fort">
                 <div class="dome"><div class="flag"><div class="flag-cloth"></div></div></div>
@@ -172,7 +157,8 @@
             <div class="floor"></div>
         </div>
 
-        <!-- HUD -->
+        <div id="pc-hint">PC: ARROWS (Move) | SPACE (Jump) | CTRL (Punch) | SHIFT (Kick)</div>
+
         <div class="hud">
             <div class="hp-container">
                 <div class="hp-name"><span id="p1-icon">🦁</span> <span id="p1-name">VIJAY</span></div>
@@ -184,7 +170,6 @@
             </div>
         </div>
 
-        <!-- Fighters -->
         <div id="f-p1" class="fighter f-p1">
             <div class="head"></div><div id="sash-p1" class="sash"></div>
             <div class="body"></div><div class="arm-l limb"></div><div class="arm-r limb"></div><div class="leg-l limb"></div><div class="leg-r limb"></div>
@@ -202,22 +187,21 @@
                     <div class="c-btn" ontouchstart="inputStart('right')" ontouchend="inputEnd('right')">→</div>
                 </div>
                 <div class="action-pad">
+                    <div class="c-btn btn-jump" ontouchstart="inputStart('jump')">⬆</div>
                     <div class="c-btn btn-atk" ontouchstart="inputStart('punch')">👊</div>
                     <div class="c-btn btn-atk" ontouchstart="inputStart('kick')">🦶</div>
                 </div>
             </div>
         </div>
 
-        <!-- Win Overlay -->
         <div id="win-overlay">
             <div class="win-title" id="win-title">VIJAY WINS</div>
-            <div class="win-sub">IS THE NEW CM!</div>
+            <div class="win-sub">CM OF TAMIL NADU 2026</div>
             <button class="btn btn-host" onclick="requestRematch()">BACK TO LOBBY</button>
         </div>
     </div>
 
     <script>
-        // --- GAME DATA ---
         const CHARS = [
             { id: 'vijay', name: 'VIJAY', color: 'gold', icon: '🦁' },
             { id: 'stalin', name: 'STALIN', color: '#ff3333', icon: '☀️' },
@@ -226,19 +210,29 @@
             { id: 'seeman', name: 'SEEMAN', color: '#333', icon: '🐯' }
         ];
 
-        // --- STATE ---
-        let role = null; // 'host' or 'guest'
+        let role = null; 
         let peer = null, conn = null;
         let myChar = null, oppChar = null;
+        
+        // PHYSICS CONSTANTS
+        const GRAVITY = 0.8;
+        const JUMP_FORCE = 15;
+        const MOVE_SPEED = 1.0;
+        const GROUND_Y = 20; // % from bottom
+
+        // Game State
         let gameState = {
-            p1: { x: 20, hp: 100, action: null },
-            p2: { x: 80, hp: 100, action: null },
+            p1: { x: 20, y: 0, vy: 0, hp: 100, action: null },
+            p2: { x: 80, y: 0, vy: 0, hp: 100, action: null },
             active: false
         };
-        let inputs = { left: false, right: false }; // My inputs
-
-        // --- 1. SETUP & LOBBY ---
         
+        // Input State
+        let inputs = { left: false, right: false, jump: false };
+
+        function isMobile() { return /Android|iPhone|iPad/i.test(navigator.userAgent); }
+
+        // --- SETUP ---
         function renderLobby() {
             const grid = document.getElementById('char-grid');
             grid.innerHTML = '';
@@ -258,9 +252,19 @@
         function switchScreen(id) {
             document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
             document.getElementById(id).classList.add('active');
+            
+            // Auto Adapt Controls
+            if(id === 'game-screen') {
+                if(isMobile()) {
+                    document.getElementById('mobile-controls').style.display = 'flex';
+                } else {
+                    document.getElementById('pc-hint').style.display = 'block';
+                    setupPCControls();
+                }
+            }
         }
 
-        // --- PEER JS LOGIC ---
+        // --- PEER JS ---
         function generateId() {
             const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
             let r = ""; for(let i=0;i<4;i++) r += chars[Math.floor(Math.random()*chars.length)];
@@ -287,7 +291,6 @@
             role = 'guest';
             const code = document.getElementById('join-code').value.toUpperCase();
             if(code.length !== 4) return alert("Invalid Code");
-            
             peer = new Peer();
             peer.on('open', () => {
                 conn = peer.connect(code);
@@ -302,87 +305,49 @@
 
         function setupConnection() {
             conn.on('data', (data) => {
-                // HANDLE INCOMING MESSAGES
                 if(data.type === 'select') {
-                    // Update Opponent Selection
                     oppChar = CHARS.find(c => c.id === data.id);
                     updateBadges(data.id, role === 'host' ? 'p2' : 'p1');
                     checkStart();
                 }
-                if(data.type === 'start') {
-                    startGame();
-                }
-                if(data.type === 'rematch') {
-                    resetLobby();
-                }
-                if(data.type === 'input') {
-                    // Host receives Input from Guest
-                    if(role === 'host') handleGuestInput(data);
-                }
-                if(data.type === 'sync') {
-                    // Guest receives State from Host
-                    if(role === 'guest') renderGame(data.state);
-                }
+                if(data.type === 'start') startGame();
+                if(data.type === 'rematch') resetLobby();
+                if(data.type === 'input' && role === 'host') handleGuestInput(data);
+                if(data.type === 'sync' && role === 'guest') renderGame(data.state);
             });
         }
 
-        // --- LOBBY ACTIONS ---
+        // --- LOBBY ---
         function selectChar(id) {
             myChar = CHARS.find(c => c.id === id);
-            
-            // Visual Highlight (Gold Border)
             document.querySelectorAll('.char-card').forEach(c => c.classList.remove('selected'));
             document.getElementById(`char-${id}`).classList.add('selected');
-            
-            // Show Badge
             updateBadges(id, role === 'host' ? 'p1' : 'p2');
-            
-            // Send to peer
             if(conn) conn.send({ type: 'select', id: id });
             checkStart();
         }
 
         function updateBadges(charId, playerRole) {
-            // Hide all badges for this role first
             const badgeClass = playerRole === 'p1' ? '.p1-badge' : '.p2-badge';
             document.querySelectorAll(badgeClass).forEach(e => e.style.display = 'none');
-            // Show specific badge
-            const badgeId = `badge-${charId}-${playerRole}`;
-            const badge = document.getElementById(badgeId);
-            if(badge) badge.style.display = 'block';
+            document.getElementById(`badge-${charId}-${playerRole}`).style.display = 'block';
         }
 
         function checkStart() {
-            if(myChar && oppChar && role === 'host') {
-                document.getElementById('start-btn').style.display = 'block';
-            }
+            if(myChar && oppChar && role === 'host') document.getElementById('start-btn').style.display = 'block';
         }
 
-        function requestStart() {
-            conn.send({ type: 'start' });
-            startGame();
-        }
+        function requestStart() { conn.send({ type: 'start' }); startGame(); }
+        function requestRematch() { if(conn) conn.send({ type: 'rematch' }); resetLobby(); }
+        function resetLobby() { gameState.active = false; document.getElementById('win-overlay').style.display = 'none'; switchScreen('lobby-screen'); }
 
-        function requestRematch() {
-            if(conn) conn.send({ type: 'rematch' });
-            resetLobby();
-        }
-
-        function resetLobby() {
-            gameState.active = false;
-            document.getElementById('win-overlay').style.display = 'none';
-            switchScreen('lobby-screen');
-        }
-
-        // --- GAME ENGINE ---
+        // --- GAME START ---
         function startGame() {
-            // Reset Game State
-            gameState.p1.hp = 100; gameState.p1.x = 20;
-            gameState.p2.hp = 100; gameState.p2.x = 80;
+            gameState.p1 = { x: 20, y: 0, vy: 0, hp: 100, action: null };
+            gameState.p2 = { x: 80, y: 0, vy: 0, hp: 100, action: null };
             
             switchScreen('game-screen');
             
-            // Setup Visuals
             const p1 = role === 'host' ? myChar : oppChar;
             const p2 = role === 'host' ? oppChar : myChar;
             
@@ -400,9 +365,28 @@
             }
         }
 
-        // INPUT HANDLERS
+        // --- INPUTS (PC & MOBILE) ---
+        function setupPCControls() {
+            window.addEventListener('keydown', (e) => {
+                if(e.repeat) return;
+                switch(e.key) {
+                    case 'ArrowLeft': inputs.left = true; updateMoveInput(); break;
+                    case 'ArrowRight': inputs.right = true; updateMoveInput(); break;
+                    case ' ': inputStart('jump'); break;
+                    case 'Control': inputStart('punch'); break;
+                    case 'Shift': inputStart('kick'); break;
+                }
+            });
+            window.addEventListener('keyup', (e) => {
+                switch(e.key) {
+                    case 'ArrowLeft': inputs.left = false; updateMoveInput(); break;
+                    case 'ArrowRight': inputs.right = false; updateMoveInput(); break;
+                }
+            });
+        }
+
         function inputStart(action) {
-            if(action === 'punch' || action === 'kick') {
+            if(action === 'punch' || action === 'kick' || action === 'jump') {
                 sendInput({ type: action });
             } else {
                 inputs[action] = true;
@@ -422,45 +406,49 @@
         }
 
         function sendInput(data) {
-            if(role === 'guest') {
-                conn.send({ type: 'input', ...data });
-            } else {
-                handleHostInput(data);
-            }
+            if(role === 'guest') conn.send({ type: 'input', ...data });
+            else handleHostInput(data);
         }
 
-        // --- HOST LOGIC LOOP ---
+        // --- HOST LOGIC ---
         let p1Input = { dir: 0 }, p2Input = { dir: 0 };
 
         function handleHostInput(data) {
             if(data.type === 'move') p1Input.dir = data.dir;
-            if(data.type === 'punch' || data.type === 'kick') doAttack('p1', data.type);
+            else if(data.type === 'jump') doJump('p1');
+            else if(data.type === 'punch' || data.type === 'kick') doAttack('p1', data.type);
         }
         function handleGuestInput(data) {
             if(data.type === 'move') p2Input.dir = data.dir;
-            if(data.type === 'punch' || data.type === 'kick') doAttack('p2', data.type);
+            else if(data.type === 'jump') doJump('p2');
+            else if(data.type === 'punch' || data.type === 'kick') doAttack('p2', data.type);
+        }
+
+        function doJump(player) {
+            if(!gameState.active) return;
+            const actor = gameState[player];
+            if(actor.y === 0) actor.vy = JUMP_FORCE; // Only jump if on ground
         }
 
         function doAttack(player, type) {
             if(!gameState.active) return;
             const actor = gameState[player];
-            if(actor.action) return; // Cooldown
+            if(actor.action) return; 
 
-            // 1. Set Action
             actor.action = type;
-            setTimeout(() => actor.action = null, 400); // Reset after anim
+            setTimeout(() => actor.action = null, 300);
 
-            // 2. Check Hit
+            // HIT DETECTION (Improved)
             const p1 = gameState.p1;
             const p2 = gameState.p2;
             const dist = Math.abs(p1.x - p2.x);
+            const yDist = Math.abs(p1.y - p2.y);
             
-            if(dist < 15) { // Hit range
+            // Hit box: X < 20% and Y < 20% (must be somewhat vertically aligned)
+            if(dist < 20 && yDist < 20) { 
                 const victimKey = player === 'p1' ? 'p2' : 'p1';
                 const dmg = type === 'punch' ? 5 : 10;
-                
                 gameState[victimKey].hp = Math.max(0, gameState[victimKey].hp - dmg);
-                
                 if(gameState[victimKey].hp <= 0) endGame(player);
             }
         }
@@ -468,11 +456,8 @@
         function endGame(winnerKey) {
             gameState.active = false;
             const winner = winnerKey === 'p1' ? (role === 'host' ? myChar : oppChar) : (role === 'host' ? oppChar : myChar);
-            
-            // Send final state
             conn.send({ type: 'sync', state: gameState });
-            
-            renderGame(gameState); // Render final frame
+            renderGame(gameState);
             showWin(winner.name);
         }
 
@@ -484,41 +469,43 @@
         function gameLoop() {
             if(!gameState.active) return;
 
-            // Update Positions
-            if(p1Input.dir !== 0 && !gameState.p1.action) gameState.p1.x = Math.max(0, Math.min(90, gameState.p1.x + (p1Input.dir * 0.8)));
-            if(p2Input.dir !== 0 && !gameState.p2.action) gameState.p2.x = Math.max(0, Math.min(90, gameState.p2.x + (p2Input.dir * 0.8)));
+            // Update P1 Physics
+            gameState.p1.vy -= GRAVITY;
+            gameState.p1.y += gameState.p1.vy;
+            if(gameState.p1.y < 0) { gameState.p1.y = 0; gameState.p1.vy = 0; }
+            if(p1Input.dir !== 0) gameState.p1.x = Math.max(0, Math.min(90, gameState.p1.x + (p1Input.dir * MOVE_SPEED)));
 
-            // Sync to Guest
+            // Update P2 Physics
+            gameState.p2.vy -= GRAVITY;
+            gameState.p2.y += gameState.p2.vy;
+            if(gameState.p2.y < 0) { gameState.p2.y = 0; gameState.p2.vy = 0; }
+            if(p2Input.dir !== 0) gameState.p2.x = Math.max(0, Math.min(90, gameState.p2.x + (p2Input.dir * MOVE_SPEED)));
+
             conn.send({ type: 'sync', state: gameState });
-            
-            // Render Host
             renderGame(gameState);
-
             requestAnimationFrame(gameLoop);
         }
 
-        // --- RENDERER (Runs on both) ---
         function renderGame(state) {
-            // Update Bars
             document.getElementById('hp-p1').style.width = state.p1.hp + '%';
             document.getElementById('hp-p2').style.width = state.p2.hp + '%';
 
-            // Update Positions
             const elP1 = document.getElementById('f-p1');
             const elP2 = document.getElementById('f-p2');
             
             elP1.style.left = state.p1.x + '%';
-            elP2.style.left = state.p2.x + '%'; // Note: P2 is right-aligned visually, but X is absolute %
+            elP1.style.bottom = (20 + state.p1.y/2) + '%'; // 20 is ground level
 
-            // Update Animations
+            elP2.style.left = state.p2.x + '%'; 
+            elP2.style.bottom = (20 + state.p2.y/2) + '%';
+
             updateAnim(elP1, state.p1.action);
             updateAnim(elP2, state.p2.action);
             
-            // KO Logic
             if(state.p1.hp <= 0) elP1.classList.add('ko');
             if(state.p2.hp <= 0) elP2.classList.add('ko');
+            
             if(!state.active && (state.p1.hp <= 0 || state.p2.hp <= 0)) {
-                // Infer winner from state if sync msg missed
                 let w = state.p1.hp > 0 ? (role==='host'?myChar.name:oppChar.name) : (role==='host'?oppChar.name:myChar.name);
                 showWin(w);
             }
