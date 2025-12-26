@@ -393,3 +393,148 @@
             document.getElementById('p2-name').innerText = p2.name;
             document.getElementById('p2-icon').innerText = p2.icon;
             document.getElementById('sash-p2').style.background = p2.color;
+
+            if(role === 'host') {
+                gameState.active = true;
+                requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // INPUT HANDLERS
+        function inputStart(action) {
+            if(action === 'punch' || action === 'kick') {
+                sendInput({ type: action });
+            } else {
+                inputs[action] = true;
+                updateMoveInput();
+            }
+        }
+        function inputEnd(action) {
+            inputs[action] = false;
+            updateMoveInput();
+        }
+        
+        function updateMoveInput() {
+            let dir = 0;
+            if(inputs.left) dir = -1;
+            if(inputs.right) dir = 1;
+            sendInput({ type: 'move', dir: dir });
+        }
+
+        function sendInput(data) {
+            if(role === 'guest') {
+                conn.send({ type: 'input', ...data });
+            } else {
+                handleHostInput(data);
+            }
+        }
+
+        // --- HOST LOGIC LOOP ---
+        let p1Input = { dir: 0 }, p2Input = { dir: 0 };
+
+        function handleHostInput(data) {
+            if(data.type === 'move') p1Input.dir = data.dir;
+            if(data.type === 'punch' || data.type === 'kick') doAttack('p1', data.type);
+        }
+        function handleGuestInput(data) {
+            if(data.type === 'move') p2Input.dir = data.dir;
+            if(data.type === 'punch' || data.type === 'kick') doAttack('p2', data.type);
+        }
+
+        function doAttack(player, type) {
+            if(!gameState.active) return;
+            const actor = gameState[player];
+            if(actor.action) return; // Cooldown
+
+            // 1. Set Action
+            actor.action = type;
+            setTimeout(() => actor.action = null, 400); // Reset after anim
+
+            // 2. Check Hit
+            const p1 = gameState.p1;
+            const p2 = gameState.p2;
+            const dist = Math.abs(p1.x - p2.x);
+            
+            if(dist < 15) { // Hit range
+                const victimKey = player === 'p1' ? 'p2' : 'p1';
+                const dmg = type === 'punch' ? 5 : 10;
+                
+                gameState[victimKey].hp = Math.max(0, gameState[victimKey].hp - dmg);
+                
+                if(gameState[victimKey].hp <= 0) endGame(player);
+            }
+        }
+
+        function endGame(winnerKey) {
+            gameState.active = false;
+            const winner = winnerKey === 'p1' ? (role === 'host' ? myChar : oppChar) : (role === 'host' ? oppChar : myChar);
+            
+            // Send final state
+            conn.send({ type: 'sync', state: gameState });
+            
+            renderGame(gameState); // Render final frame
+            showWin(winner.name);
+        }
+
+        function showWin(name) {
+            document.getElementById('win-overlay').style.display = 'flex';
+            document.getElementById('win-title').innerText = name + " WINS";
+        }
+
+        function gameLoop() {
+            if(!gameState.active) return;
+
+            // Update Positions
+            if(p1Input.dir !== 0 && !gameState.p1.action) gameState.p1.x = Math.max(0, Math.min(90, gameState.p1.x + (p1Input.dir * 0.8)));
+            if(p2Input.dir !== 0 && !gameState.p2.action) gameState.p2.x = Math.max(0, Math.min(90, gameState.p2.x + (p2Input.dir * 0.8)));
+
+            // Sync to Guest
+            conn.send({ type: 'sync', state: gameState });
+            
+            // Render Host
+            renderGame(gameState);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        // --- RENDERER (Runs on both) ---
+        function renderGame(state) {
+            // Update Bars
+            document.getElementById('hp-p1').style.width = state.p1.hp + '%';
+            document.getElementById('hp-p2').style.width = state.p2.hp + '%';
+
+            // Update Positions
+            const elP1 = document.getElementById('f-p1');
+            const elP2 = document.getElementById('f-p2');
+            
+            elP1.style.left = state.p1.x + '%';
+            elP2.style.left = state.p2.x + '%'; // Note: P2 is right-aligned visually, but X is absolute %
+
+            // Update Animations
+            updateAnim(elP1, state.p1.action);
+            updateAnim(elP2, state.p2.action);
+            
+            // KO Logic
+            if(state.p1.hp <= 0) elP1.classList.add('ko');
+            if(state.p2.hp <= 0) elP2.classList.add('ko');
+            if(!state.active && (state.p1.hp <= 0 || state.p2.hp <= 0)) {
+                // Infer winner from state if sync msg missed
+                let w = state.p1.hp > 0 ? (role==='host'?myChar.name:oppChar.name) : (role==='host'?oppChar.name:myChar.name);
+                showWin(w);
+            }
+        }
+
+        function updateAnim(el, action) {
+            el.classList.remove('punching', 'kicking');
+            if(action === 'punch') el.classList.add('punching');
+            if(action === 'kick') el.classList.add('kicking');
+        }
+
+        function copyCode() {
+            navigator.clipboard.writeText(peer.id);
+            alert("Copied Code!");
+        }
+
+    </script>
+</body>
+</html>
