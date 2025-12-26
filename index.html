@@ -28,6 +28,8 @@
 
         .input-group { display: flex; flex-direction: column; gap: 10px; width: 85%; max-width: 300px; display: none; }
         .code-input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; font-size: 16px; text-align: center; letter-spacing: 1px; }
+        
+        #status-log { margin-top: 10px; color: #aaa; font-size: 12px; font-family: monospace; min-height: 20px; text-align: center; }
 
         /* --- 2. LOBBY SCREEN --- */
         #lobby-screen { background: #111; padding: 20px; }
@@ -134,6 +136,7 @@
             <input type="text" id="p-name" class="code-input" placeholder="YOUR NAME" maxlength="10">
             <input type="text" id="join-code" class="code-input" placeholder="ROOM CODE" maxlength="4">
             <button class="btn btn-join" id="join-action-btn" style="width:100%; margin:0;" onclick="joinGame()">Enter Arena</button>
+            <div id="status-log"></div>
         </div>
     </div>
 
@@ -275,6 +278,7 @@
         let inputs = { left: false, right: false };
 
         function isMobile() { return /Android|iPhone|iPad/i.test(navigator.userAgent); }
+        function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
 
         // --- UI ---
         function switchScreen(id) {
@@ -442,30 +446,22 @@
             const btn = document.getElementById('join-action-btn');
             btn.innerText = "CONNECTING...";
             btn.disabled = true;
+            logStatus("Initializing Network...");
 
             // Cleanup prev
             if(peer) peer.destroy();
 
-            // INSTANT PEER ID GENERATION (Key Fix)
-            const myGuestId = "G-" + generateId();
-            peer = new Peer(myGuestId, peerConfig);
-
-            // Timeout Handler
-            const connTimeout = setTimeout(() => {
-                if(btn.disabled) {
-                    alert("Connection Timed Out. Try again.");
-                    btn.innerText = "ENTER ARENA";
-                    btn.disabled = false;
-                    if(peer) peer.destroy();
-                }
-            }, 10000);
+            // REVERTED TO AUTO-ID (More reliable)
+            peer = new Peer(peerConfig);
 
             peer.on('open', (id) => {
+                logStatus("Network Ready. Finding Host...");
                 myId = id;
-                const conn = peer.connect(code, { reliable: true });
+                // FIX: Force JSON serialization
+                const conn = peer.connect(code, { serialization: 'json' });
                 
                 conn.on('open', () => {
-                    clearTimeout(connTimeout);
+                    logStatus("Connected! Entering Lobby...");
                     peer.conn = conn; 
                     conn.send({ type: 'join', name: myName, char: myChar });
                 });
@@ -491,7 +487,7 @@
                 });
 
                 conn.on('error', (err) => {
-                    clearTimeout(connTimeout);
+                    logStatus("Connection Failed: " + err);
                     alert("Connection Failed. Check Code.");
                     btn.innerText = "ENTER ARENA";
                     btn.disabled = false;
@@ -499,8 +495,7 @@
             });
 
             peer.on('error', (err) => {
-                clearTimeout(connTimeout);
-                alert("Network Error: " + err.type);
+                logStatus("Error: " + err.type);
                 btn.innerText = "ENTER ARENA";
                 btn.disabled = false;
             });
