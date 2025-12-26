@@ -4,7 +4,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Assembly Kombat: IPL Edition</title>
-    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <!-- Using PeerJS 1.5.2 -->
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600&family=Roboto:wght@700&display=swap" rel="stylesheet">
     
     <style>
@@ -25,11 +26,14 @@
         .btn:active { transform: scale(0.95); }
         .btn-host { background: linear-gradient(45deg, #00E676, #00C853); color: #003300; box-shadow: 0 0 15px rgba(0,230,118,0.3); }
         .btn-join { background: linear-gradient(45deg, #2979FF, #2962FF); color: white; box-shadow: 0 0 15px rgba(41,121,255,0.3); }
+        
+        /* Disabled Button Style */
+        .btn:disabled { background: #333; color: #777; cursor: not-allowed; box-shadow: none; transform: none; }
 
         .input-group { display: flex; flex-direction: column; gap: 10px; width: 85%; max-width: 300px; display: none; }
         .code-input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; font-size: 16px; text-align: center; letter-spacing: 1px; }
         
-        #status-log { margin-top: 10px; color: #aaa; font-size: 12px; font-family: monospace; min-height: 20px; text-align: center; }
+        #status-log { margin-top: 15px; color: #FFD700; font-size: 14px; font-family: monospace; min-height: 20px; text-align: center; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px; }
 
         /* --- 2. LOBBY SCREEN --- */
         #lobby-screen { background: #111; padding: 20px; }
@@ -149,7 +153,8 @@
         
         <div class="player-list" id="player-list"></div>
 
-        <button id="start-btn" class="btn btn-host" style="width:100%; max-width:600px; margin: 20px auto; display:none;" onclick="startTournament()">START IPL MATCH</button>
+        <!-- START BUTTON: Always visible but disabled initially -->
+        <button id="start-btn" class="btn btn-host" style="width:100%; max-width:600px; margin: 20px auto; opacity: 0.5;" disabled onclick="startTournament()">WAITING FOR PLAYERS...</button>
 
         <div class="char-select-overlay" id="char-select">
             <div style="color:#aaa; margin-bottom:10px; font-size:12px;">CHOOSE YOUR LEADER</div>
@@ -239,17 +244,12 @@
         const MOVE_SPEED = 0.6; 
         const GROUND_Y = 20;
 
-        // PEER CONFIG FOR RELIABILITY
+        // PEER CONFIG
         const peerConfig = {
             config: {
                 iceServers: [
                     { urls: 'stun:stun.l.google.com:19302' },
-                    { urls: 'stun:stun1.l.google.com:19302' },
-                    { urls: 'stun:stun2.l.google.com:19302' },
-                    { urls: 'stun:stun3.l.google.com:19302' },
-                    { urls: 'stun:stun4.l.google.com:19302' },
-                    // Public STUN to help mobile/pc connectivity
-                    { urls: 'stun:stun.services.mozilla.com' }
+                    { urls: 'stun:stun1.l.google.com:19302' }
                 ]
             }
         };
@@ -262,7 +262,7 @@
         let peer = null;
         
         // Host Data
-        let connections = []; 
+        let connections = []; // Array of { conn: peerConn, id: peerId }
         let players = []; 
         let currentMatch = { p1: null, p2: null }; 
         let tournamentStarted = false; // LOCK
@@ -317,7 +317,8 @@
             myId = generateId(); 
             myName = "HOST";
             
-            players.push({ id: 'HOST', name: myName, char: myChar, wins: 0, conn: null });
+            // Host is always first player
+            players = [{ id: 'HOST', name: myName, char: myChar, wins: 0 }];
 
             if(peer) peer.destroy();
             peer = new Peer(myId, peerConfig);
@@ -327,18 +328,28 @@
                 document.getElementById('room-code-display').innerText = `CODE: ${id}`;
                 document.getElementById('char-select').classList.add('show');
                 renderPlayerList();
-                document.getElementById('start-btn').style.display = 'block';
             });
 
             peer.on('connection', (conn) => {
+                // When a connection opens
+                conn.on('open', () => {
+                    // Check if already in connections
+                    const exists = connections.find(c => c.id === conn.peer);
+                    if(!exists) connections.push({ conn: conn, id: conn.peer });
+                });
+
                 conn.on('data', (data) => {
                     if(data.type === 'join') {
                         if(tournamentStarted) {
                             conn.send({ type: 'reject', msg: 'Match in Progress! Locked.' });
                             return;
                         }
-                        connections.push(conn); // Only add if not started
-                        players.push({ id: conn.peer, name: data.name, char: data.char, wins: 0, conn: conn });
+                        
+                        // Add to player list if not exists
+                        const pExists = players.find(p => p.id === conn.peer);
+                        if(!pExists) {
+                            players.push({ id: conn.peer, name: data.name, char: data.char, wins: 0 });
+                        }
                         broadcastLobby();
                     }
                     if(data.type === 'update_profile') {
@@ -347,8 +358,15 @@
                         broadcastLobby();
                     }
                     if(data.type === 'input') {
-                        handleInput(conn.peer, data);
+                        handleInput(conn.peer, data.inputData);
                     }
+                });
+                
+                conn.on('close', () => {
+                    // Handle disconnect
+                    connections = connections.filter(c => c.id !== conn.peer);
+                    players = players.filter(p => p.id !== conn.peer);
+                    broadcastLobby();
                 });
             });
         }
@@ -361,7 +379,26 @@
         function broadcastLobby() {
             renderPlayerList();
             const cleanList = players.map(p => ({ id: p.id, name: p.name, char: p.char, wins: p.wins }));
-            connections.forEach(c => c.send({ type: 'lobby_update', players: cleanList }));
+            
+            // Start Button Logic
+            const btn = document.getElementById('start-btn');
+            if(players.length >= 2) {
+                btn.disabled = false;
+                btn.style.opacity = '1';
+                btn.innerText = "START IPL MATCH (" + players.length + " Players)";
+                btn.style.background = "linear-gradient(45deg, #00E676, #00C853)";
+            } else {
+                btn.disabled = true;
+                btn.style.opacity = '0.5';
+                btn.innerText = "WAITING FOR PLAYERS...";
+                btn.style.background = "#333";
+            }
+
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) {
+                    obj.conn.send({ type: 'lobby_update', players: cleanList });
+                }
+            });
         }
 
         function renderPlayerList() {
@@ -377,13 +414,10 @@
 
         function startTournament() {
             if(players.length < 2) return alert("Need at least 2 players!");
-            
-            tournamentStarted = true; // LOCK LOBBY
-            
+            tournamentStarted = true;
             // Initial Match: P1 vs P2
             currentMatch.p1 = players[0].id;
             currentMatch.p2 = players[1].id;
-            
             startMatch();
         }
 
@@ -396,7 +430,6 @@
             const p1Obj = players.find(p => p.id === currentMatch.p1);
             const p2Obj = players.find(p => p.id === currentMatch.p2);
             
-            // Queue: Everyone after the first 2
             const queueNames = players.slice(2).map(p => p.name);
 
             const matchData = { 
@@ -406,7 +439,9 @@
             };
 
             const payload = { type: 'match_start', match: matchData };
-            connections.forEach(c => c.send(payload));
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) obj.conn.send(payload);
+            });
             
             setupGameUI(matchData);
             requestAnimationFrame(gameLoop);
@@ -416,15 +451,18 @@
             const winnerId = gameState.winner;
             const loserId = (currentMatch.p1 === winnerId) ? currentMatch.p2 : currentMatch.p1;
             
-            // Loser to end
+            // Re-order players
             const loserIndex = players.findIndex(p => p.id === loserId);
-            const loserObj = players.splice(loserIndex, 1)[0];
-            players.push(loserObj);
+            if(loserIndex > -1) {
+                const loserObj = players.splice(loserIndex, 1)[0];
+                players.push(loserObj);
+            }
             
-            // Winner to front
             const winnerIndex = players.findIndex(p => p.id === winnerId);
-            const winnerObj = players.splice(winnerIndex, 1)[0];
-            players.unshift(winnerObj);
+            if(winnerIndex > -1) {
+                const winnerObj = players.splice(winnerIndex, 1)[0];
+                players.unshift(winnerObj); // Winner stays at top
+            }
             
             broadcastLobby(); 
 
@@ -442,26 +480,21 @@
             const code = document.getElementById('join-code').value.toUpperCase();
             if(!code) return alert("Enter Code");
 
-            // Feedback UI
             const btn = document.getElementById('join-action-btn');
             btn.innerText = "CONNECTING...";
             btn.disabled = true;
             logStatus("Initializing Network...");
 
-            // Cleanup prev
             if(peer) peer.destroy();
-
-            // REVERTED TO AUTO-ID (More reliable)
             peer = new Peer(peerConfig);
 
             peer.on('open', (id) => {
-                logStatus("Network Ready. Finding Host...");
+                logStatus("Network Ready. Connecting to Host...");
                 myId = id;
-                // FIX: Force JSON serialization
                 const conn = peer.connect(code, { serialization: 'json' });
                 
                 conn.on('open', () => {
-                    logStatus("Connected! Entering Lobby...");
+                    logStatus("Connected! Joining Lobby...");
                     peer.conn = conn; 
                     conn.send({ type: 'join', name: myName, char: myChar });
                 });
@@ -487,8 +520,7 @@
                 });
 
                 conn.on('error', (err) => {
-                    logStatus("Connection Failed: " + err);
-                    alert("Connection Failed. Check Code.");
+                    logStatus("Connection Error: " + err);
                     btn.innerText = "ENTER ARENA";
                     btn.disabled = false;
                 });
@@ -502,7 +534,7 @@
         }
         
         function sendToHost(msg) {
-            if(peer && peer.conn) peer.conn.send(msg);
+            if(peer && peer.conn && peer.conn.open) peer.conn.send(msg);
         }
 
         // --- GAMEPLAY UI ---
@@ -518,7 +550,6 @@
             document.getElementById('p2-char').innerText = match.p2.char.icon;
             document.getElementById('sash-p2').style.background = match.p2.char.color;
             
-            // Setup Queue List
             const qList = document.getElementById('q-list');
             qList.innerHTML = '';
             if(match.queue && match.queue.length > 0) {
@@ -536,11 +567,10 @@
 
             let amIPlaying = false;
             
-            if(role === 'host') {
-                if(match.p1.id === 'HOST' || match.p2.id === 'HOST') amIPlaying = true;
-            } else {
-                if(match.p1.id === myId || match.p2.id === myId) amIPlaying = true;
-            }
+            // Check based on IDs
+            if(match.p1.id === 'HOST' && role === 'host') amIPlaying = true;
+            else if(match.p2.id === 'HOST' && role === 'host') amIPlaying = true;
+            else if(match.p1.id === myId || match.p2.id === myId) amIPlaying = true;
 
             if(amIPlaying) {
                 document.getElementById('spec-badge').style.display = 'none';
@@ -550,7 +580,6 @@
                     setupPCControls();
                 }
             } else {
-                // Spectator
                 document.getElementById('spec-badge').style.display = 'block';
                 document.getElementById('mobile-controls').style.display = 'none';
                 document.getElementById('pc-hint').style.display = 'none';
@@ -594,7 +623,9 @@
             });
 
             const syncData = { type: 'sync', state: gameState };
-            connections.forEach(c => c.send(syncData));
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) obj.conn.send(syncData);
+            });
             renderGame(gameState);
 
             requestAnimationFrame(gameLoop);
@@ -628,11 +659,13 @@
             
             const wId = gameState[winnerKey].id;
             const winnerObj = players.find(p => p.id === wId);
-            winnerObj.wins++;
+            if(winnerObj) winnerObj.wins++;
             gameState.winner = wId;
 
             const syncData = { type: 'sync', state: gameState };
-            connections.forEach(c => c.send(syncData));
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) obj.conn.send(syncData);
+            });
             renderGame(gameState);
         }
 
@@ -713,8 +746,9 @@
         }
 
         function sendInput(data) {
+            // FIX: Ensure data is wrapped as inputData for Guest
             if(role === 'host') hostInput(data);
-            else sendToHost({ type: 'input', ...data });
+            else sendToHost({ type: 'input', inputData: data });
         }
         
         function copyCode() {
