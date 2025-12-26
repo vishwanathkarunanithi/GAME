@@ -245,6 +245,8 @@
                     { urls: 'stun:stun2.l.google.com:19302' },
                     { urls: 'stun:stun3.l.google.com:19302' },
                     { urls: 'stun:stun4.l.google.com:19302' },
+                    // Public STUN to help mobile/pc connectivity
+                    { urls: 'stun:stun.services.mozilla.com' }
                 ]
             }
         };
@@ -313,7 +315,9 @@
             
             players.push({ id: 'HOST', name: myName, char: myChar, wins: 0, conn: null });
 
+            if(peer) peer.destroy();
             peer = new Peer(myId, peerConfig);
+            
             peer.on('open', (id) => {
                 switchScreen('lobby-screen');
                 document.getElementById('room-code-display').innerText = `CODE: ${id}`;
@@ -439,14 +443,31 @@
             btn.innerText = "CONNECTING...";
             btn.disabled = true;
 
-            peer = new Peer(peerConfig);
+            // Cleanup prev
+            if(peer) peer.destroy();
+
+            // INSTANT PEER ID GENERATION (Key Fix)
+            const myGuestId = "G-" + generateId();
+            peer = new Peer(myGuestId, peerConfig);
+
+            // Timeout Handler
+            const connTimeout = setTimeout(() => {
+                if(btn.disabled) {
+                    alert("Connection Timed Out. Try again.");
+                    btn.innerText = "ENTER ARENA";
+                    btn.disabled = false;
+                    if(peer) peer.destroy();
+                }
+            }, 10000);
+
             peer.on('open', (id) => {
                 myId = id;
-                const conn = peer.connect(code);
+                const conn = peer.connect(code, { reliable: true });
+                
                 conn.on('open', () => {
+                    clearTimeout(connTimeout);
                     peer.conn = conn; 
                     conn.send({ type: 'join', name: myName, char: myChar });
-                    // Wait for acceptance
                 });
                 
                 conn.on('data', (data) => {
@@ -455,7 +476,7 @@
                         location.reload();
                     }
                     if(data.type === 'lobby_update') {
-                        switchScreen('lobby-screen'); // Valid join
+                        switchScreen('lobby-screen'); 
                         document.getElementById('room-code-display').innerText = `CONNECTED: ${code}`;
                         document.getElementById('char-select').classList.add('show');
                         players = data.players;
@@ -469,15 +490,16 @@
                     }
                 });
 
-                // Error Handling
                 conn.on('error', (err) => {
-                    alert("Connection Failed. Check Code or Internet.");
+                    clearTimeout(connTimeout);
+                    alert("Connection Failed. Check Code.");
                     btn.innerText = "ENTER ARENA";
                     btn.disabled = false;
                 });
             });
 
             peer.on('error', (err) => {
+                clearTimeout(connTimeout);
                 alert("Network Error: " + err.type);
                 btn.innerText = "ENTER ARENA";
                 btn.disabled = false;
