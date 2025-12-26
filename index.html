@@ -3,353 +3,855 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Vijay Action Game</title>
+    <title>Assembly Kombat: IPL Edition</title>
+    <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Teko:wght@600&family=Roboto:wght@700&display=swap" rel="stylesheet">
     
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- React & ReactDOM -->
-    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    
-    <!-- Babel -->
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Icons -->
-    <script src="https://unpkg.com/lucide@latest"></script>
-
     <style>
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            margin: 0;
-            overflow: hidden; /* Prevent scrolling */
-            background-color: #000;
-            color: white;
-            touch-action: none; /* Prevent browser zooming/swiping */
-        }
+        * { box-sizing: border-box; touch-action: none; user-select: none; -webkit-user-select: none; }
+        body { margin: 0; background: #050505; font-family: 'Roboto', sans-serif; overflow: hidden; color: white; }
 
-        /* WALLPAPER SETTING */
-        #game-bg {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            /* Vijay Wallpaper */
-            background-image: linear-gradient(rgba(0, 0, 0, 0.3), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop');
+        /* --- SCREENS --- */
+        .screen { display: none; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; flex-direction: column; }
+        .active { display: flex; }
+
+        /* --- 1. MENU SCREEN --- */
+        #menu-screen { align-items: center; justify-content: center; background: radial-gradient(circle, #1a1a2e, #000); }
+        .logo-box { text-align: center; margin-bottom: 30px; }
+        .logo-main { font-family: 'Teko', sans-serif; font-size: 70px; line-height: 0.8; background: linear-gradient(to right, #FFD700, #ff8c00); -webkit-background-clip: text; color: transparent; text-transform: uppercase; }
+        .logo-sub { font-size: 18px; letter-spacing: 4px; color: #aaa; margin-top: 5px; }
+
+        .btn { padding: 15px 30px; font-size: 18px; font-weight: bold; border: none; border-radius: 50px; cursor: pointer; margin: 10px; width: 85%; max-width: 300px; text-transform: uppercase; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-host { background: linear-gradient(45deg, #00E676, #00C853); color: #003300; box-shadow: 0 0 15px rgba(0,230,118,0.3); }
+        .btn-join { background: linear-gradient(45deg, #2979FF, #2962FF); color: white; box-shadow: 0 0 15px rgba(41,121,255,0.3); }
+        .btn:disabled { background: #333 !important; color: #777 !important; cursor: not-allowed; box-shadow: none; transform: none; }
+
+        .input-group { display: flex; flex-direction: column; gap: 10px; width: 85%; max-width: 300px; display: none; }
+        .code-input { padding: 12px; border-radius: 8px; border: 1px solid #444; background: #111; color: white; font-size: 16px; text-align: center; letter-spacing: 1px; }
+        
+        #status-log { margin-top: 15px; color: #FFD700; font-size: 14px; font-family: monospace; min-height: 20px; text-align: center; background: rgba(0,0,0,0.5); padding: 5px; border-radius: 5px; }
+
+        /* --- 2. LOBBY SCREEN --- */
+        #lobby-screen { background: #111; padding: 20px; flex-direction: column; }
+        .lobby-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; border-bottom: 1px solid #333; padding-bottom: 10px; }
+        .room-code { font-family: monospace; color: #FFD700; font-size: 20px; background: #222; padding: 5px 10px; border-radius: 5px; cursor: pointer; }
+        
+        #start-area { width: 100%; margin-bottom: 10px; display: none; }
+        #start-btn { width: 100%; padding: 15px; font-size: 20px; background: #333; color: #aaa; border: 2px solid #444; border-radius: 10px; cursor: not-allowed; }
+        #start-btn.ready { background: linear-gradient(45deg, #00E676, #00C853); color: black; border-color: #00E676; cursor: pointer; animation: pulse 2s infinite; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0.4); } 70% { box-shadow: 0 0 0 10px rgba(0, 230, 118, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 230, 118, 0); } }
+
+        .player-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; width: 100%; padding-bottom: 120px; }
+        .player-item { background: #222; padding: 15px; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #555; }
+        .player-item.host { border-left-color: #FFD700; }
+        .player-item.me { background: #2a2a2a; }
+        
+        .char-select-overlay { position: fixed; bottom: 0; left: 0; width: 100%; background: #1a1a1a; padding: 15px; border-top: 2px solid #333; z-index: 50; display: flex; flex-direction: column; align-items: center; box-shadow: 0 -5px 20px rgba(0,0,0,0.5); }
+        .char-grid { display: flex; gap: 10px; overflow-x: auto; width: 100%; padding: 5px 0; justify-content: center; }
+        .char-btn { width: 60px; height: 60px; border-radius: 10px; border: 2px solid #444; background: #222; font-size: 30px; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
+        .char-btn.selected { border-color: #FFD700; background: #444; box-shadow: 0 0 10px rgba(255,215,0,0.3); }
+
+        /* --- 3. GAME SCREEN --- */
+        #game-screen { 
+            /* Vijay Wallpaper mixed with game theme */
+            background: linear-gradient(to bottom, rgba(135, 206, 235, 0.5) 0%, rgba(224, 247, 250, 0.6) 100%), url('https://images.unsplash.com/photo-1489599849927-2ee91cede3ba?q=80&w=2070&auto=format&fit=crop');
             background-size: cover;
             background-position: center;
         }
+        .bg-art { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 0; pointer-events: none; }
+        .fort { position: absolute; bottom: 20%; left: 50%; transform: translateX(-50%); width: 80%; height: 200px; background: rgba(240, 240, 240, 0.9); border: 2px solid #ccc; box-shadow: 0 10px 20px rgba(0,0,0,0.1); display: flex; justify-content: center; align-items: flex-end; }
+        .pillar { width: 20px; height: 100%; background: linear-gradient(to right, #ddd, #fff, #ddd); margin: 0 15px; }
+        .dome { position: absolute; top: -60px; left: 50%; transform: translateX(-50%); width: 100px; height: 60px; background: rgba(255, 255, 255, 0.95); border-radius: 50px 50px 0 0; border: 2px solid #ccc; border-bottom: none; }
+        .flag { position: absolute; top: -100px; left: 50%; height: 40px; width: 2px; background: #333; }
+        .flag-cloth { width: 30px; height: 20px; background: orange; position: absolute; top: 0; left: 0; }
+        .floor { position: absolute; bottom: 0; width: 100%; height: 20%; background: #5D4037; border-top: 5px solid #3E2723; z-index: 1; }
 
-        /* Virtual Controller Styles */
-        .d-pad-btn {
-            width: 70px;
-            height: 70px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.4);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-            transition: transform 0.1s, background 0.1s;
-            user-select: none;
+        #spec-badge { position: absolute; top: 70px; width: 100%; text-align: center; background: rgba(0,0,0,0.7); color: #FFD700; padding: 5px; font-size: 14px; font-weight: bold; display: none; z-index: 90; }
+
+        #match-queue { position: absolute; top: 70px; right: 10px; background: rgba(0,0,0,0.8); border: 1px solid #444; padding: 10px; border-radius: 8px; z-index: 90; max-width: 150px; font-size: 12px; display: none; }
+        .q-title { color: #aaa; border-bottom: 1px solid #555; margin-bottom: 5px; padding-bottom: 2px; font-weight: bold; }
+        .q-item { color: white; margin-bottom: 2px; }
+        .q-me { color: #FFD700; font-weight: bold; }
+
+        /* HUD UPDATED WITH SCORE */
+        .hud { position: absolute; top: 0; width: 100%; padding: 15px; display: flex; justify-content: space-between; align-items: flex-start; z-index: 20; }
+        .hp-container { width: 35%; background: rgba(0,0,0,0.6); padding: 5px; border-radius: 8px; backdrop-filter: blur(5px); }
+        .hp-name { display: flex; align-items: center; gap: 5px; font-size: 14px; font-weight: bold; margin-bottom: 5px; color: white; justify-content: space-between; }
+        .hp-bar-bg { width: 100%; height: 12px; background: #333; border-radius: 10px; overflow: hidden; }
+        .hp-fill { height: 100%; width: 100%; background: #00E676; transition: width 0.1s linear; }
+        
+        .score-board { width: 20%; text-align: center; font-family: 'Teko'; font-size: 40px; color: gold; text-shadow: 0 0 10px black; line-height: 1; }
+        .round-info { font-size: 14px; color: #aaa; font-family: 'Roboto'; letter-spacing: 1px; }
+
+        /* Fighters */
+        .fighter { width: 80px; height: 140px; position: absolute; bottom: 20%; z-index: 10; transition: transform 0.1s; will-change: left, bottom; }
+        .f-p1 { left: 20%; }
+        .f-p2 { right: 20%; transform: scaleX(-1); }
+
+        .head { width: 30px; height: 30px; background: #FFCCBC; border-radius: 50%; border: 2px solid #333; position: absolute; top: 0; left: 25px; z-index: 2; }
+        .body { width: 34px; height: 50px; background: #333; border-radius: 5px; position: absolute; top: 28px; left: 23px; z-index: 1; }
+        .sash { width: 34px; height: 50px; position: absolute; top: 28px; left: 23px; z-index: 2; opacity: 0.9; }
+        .limb { width: 8px; height: 40px; background: #333; position: absolute; border-radius: 4px; }
+        .arm-l { top: 30px; left: 18px; transform-origin: top; }
+        .arm-r { top: 30px; right: 18px; transform-origin: top; }
+        .leg-l { top: 75px; left: 25px; transform-origin: top; }
+        .leg-r { top: 75px; right: 25px; transform-origin: top; }
+
+        .punching .arm-r { transform: rotate(-90deg); background: #fff; }
+        .kicking .leg-r { transform: rotate(-90deg); background: #fff; }
+        .hit { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: translateX(-5px); }
+        .ko { transform: rotate(90deg) translateY(50px); filter: grayscale(1); }
+
+        /* Mobile Controls - FIXED & ENHANCED */
+        #mobile-controls { 
+            position: absolute; 
+            bottom: 0; 
+            left: 0; 
+            width: 100%; 
+            height: 100%; 
+            z-index: 95; /* Increased Z-Index to be above everything else but below win screen */
+            display: none; /* Toggled by JS or Media Query */
+            flex-direction: column; 
+            justify-content: flex-end; 
+            padding: 2vh 5vw; 
+            pointer-events: none; 
         }
-        .d-pad-btn:active, .d-pad-btn.active {
-            background: rgba(255, 255, 255, 0.5);
-            transform: scale(0.95);
+        
+        /* Force buttons on small screens */
+        @media (max-width: 900px) {
+            #mobile-controls { display: flex !important; }
+            #pc-hint { display: none !important; }
         }
 
-        .action-btn {
-            width: 90px;
-            height: 90px;
-            background: rgba(239, 68, 68, 0.6); /* Red tint */
-            border: 3px solid rgba(255, 100, 100, 0.6);
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            backdrop-filter: blur(4px);
-            box-shadow: 0 4px 15px rgba(220, 38, 38, 0.4);
-            transition: transform 0.1s;
-            user-select: none;
+        .ctrl-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 3vh; pointer-events: auto; }
+        .d-pad { display: flex; gap: 4vw; }
+        .action-pad { display: flex; gap: 4vw; }
+        
+        .c-btn { 
+            width: 15vmin; 
+            height: 15vmin; 
+            max-width: 80px; 
+            max-height: 80px; 
+            min-width: 60px; /* Ensured minimum size */
+            min-height: 60px; 
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.25); /* More visible */
+            border: 3px solid rgba(255,255,255,0.6); 
+            backdrop-filter: blur(4px); 
+            color: white; 
+            font-size: 6vmin; /* Larger icons */
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.4); 
+            -webkit-tap-highlight-color: transparent;
         }
-        .action-btn:active, .action-btn.active {
-            background: rgba(239, 68, 68, 0.9);
-            transform: scale(0.95);
-            box-shadow: 0 2px 8px rgba(220, 38, 38, 0.6);
-        }
+        .c-btn:active { background: rgba(255,255,255,0.5); transform: scale(0.95); }
+        .btn-atk { background: rgba(255, 50, 50, 0.4); border-color: #ff5555; }
+        .btn-jump { background: rgba(50, 255, 50, 0.4); border-color: #55ff55; }
 
-        canvas {
-            display: block;
-        }
+        #pc-hint { position: absolute; top: 60px; width: 100%; text-align: center; font-size: 12px; color: rgba(0,0,0,0.5); z-index: 15; display: none; }
+
+        /* Win Overlay */
+        #win-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.9); z-index: 100; display: none; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+        .win-title { font-family: 'Teko'; font-size: 80px; color: #FFD700; line-height: 1; text-shadow: 0 0 20px #FFD700; animation: scaleUp 0.5s ease-out; }
+        .win-sub { font-size: 30px; color: #fff; margin-bottom: 30px; font-family: 'Teko'; letter-spacing: 2px; text-transform: uppercase; }
+        
+        @keyframes scaleUp { 0% { transform: scale(0.5); opacity: 0; } 100% { transform: scale(1); opacity: 1; } }
+
+        .leaderboard { width: 80%; background: #222; padding: 15px; border-radius: 10px; margin-bottom: 20px; }
+        .lb-row { display: flex; justify-content: space-between; padding: 5px; border-bottom: 1px solid #444; color: #aaa; font-size: 14px; }
+
+        /* CONFETTI CSS */
+        .confetti { position: absolute; width: 10px; height: 10px; background-color: #f00; animation: fall linear forwards; }
+        @keyframes fall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(110vh) rotate(720deg); } }
     </style>
 </head>
 <body>
-    <div id="game-bg"></div>
-    <div id="root"></div>
 
-    <script type="text/babel">
-        const { useState, useEffect, useRef } = React;
+    <!-- 1. MENU -->
+    <div id="menu-screen" class="screen active">
+        <div class="logo-box">
+            <div class="logo-main">Assembly<br>Kombat</div>
+            <div class="logo-sub">IPL TOURNAMENT</div>
+        </div>
+        <button class="btn btn-host" onclick="initHost()">Host Tournament</button>
+        <button class="btn btn-join" onclick="showJoin()">Join Tournament</button>
+        <div class="input-group" id="join-inputs">
+            <input type="text" id="p-name" class="code-input" placeholder="YOUR NAME" maxlength="10">
+            <input type="text" id="join-code" class="code-input" placeholder="ROOM CODE" maxlength="4">
+            <button class="btn btn-join" id="join-action-btn" style="width:100%; margin:0;" onclick="joinGame()">Enter Arena</button>
+            <div id="status-log"></div>
+        </div>
+    </div>
 
-        function App() {
-            // Game State
-            const canvasRef = useRef(null);
-            const [score, setScore] = useState(0);
-            const [gameState, setGameState] = useState('playing'); // playing, gameover
+    <!-- 2. LOBBY -->
+    <div id="lobby-screen" class="screen">
+        <div class="lobby-header">
+            <div style="font-family:'Teko'; font-size:30px;">LOBBY</div>
+            <div class="room-code" id="room-code-display" onclick="copyCode()">CODE: ....</div>
+        </div>
+        <div id="start-area">
+            <button id="start-btn" onclick="startTournament()" disabled>WAITING FOR PLAYERS (1/2)</button>
+        </div>
+        <div class="player-list" id="player-list"></div>
+        <div class="char-select-overlay" id="char-select">
+            <div style="color:#aaa; margin-bottom:5px; font-size:12px;">CHOOSE LEADER</div>
+            <div class="char-grid" id="char-grid"></div>
+        </div>
+    </div>
+
+    <!-- 3. GAME -->
+    <div id="game-screen" class="screen">
+        <div class="bg-art">
+            <div class="fort">
+                <div class="dome"><div class="flag"><div class="flag-cloth"></div></div></div>
+                <div class="pillar"></div><div class="pillar"></div><div class="pillar"></div><div class="pillar"></div>
+            </div>
+            <div class="floor"></div>
+        </div>
+
+        <div id="spec-badge">SPECTATING MATCH...</div>
+        <div id="match-queue">
+            <div class="q-title">UPCOMING</div>
+            <div id="q-list"></div>
+        </div>
+
+        <div id="pc-hint">ARROWS: Move | SPACE: Jump | CTRL: Punch | SHIFT: Kick</div>
+
+        <div class="hud">
+            <div class="hp-container">
+                <div class="hp-name"><span id="p1-name">VIJAY</span> <span id="p1-char">🦁</span></div>
+                <div class="hp-bar-bg"><div id="hp-p1" class="hp-fill"></div></div>
+            </div>
             
-            // Input State (for visual feedback on buttons)
-            const [inputs, setInputs] = useState({ left: false, right: false, punch: false });
+            <div class="score-board">
+                <div id="score-display">0 - 0</div>
+                <div class="round-info">FIRST TO 5</div>
+            </div>
 
-            // Refs for game loop logic (to avoid stale closures)
-            const playerRef = useRef({ x: 100, y: 0, width: 60, height: 100, velocityX: 0, isPunching: false, facingRight: true });
-            const enemyRef = useRef({ x: 300, y: 0, width: 60, height: 100, hp: 100, isHit: false });
-            const inputRef = useRef({ left: false, right: false, punch: false });
-            const scoreRef = useRef(0);
+            <div class="hp-container" style="text-align:right; align-items: flex-end; display:flex; flex-direction:column;">
+                <div class="hp-name"><span id="p2-name">OPPONENT</span> <span id="p2-char">🐯</span></div>
+                <div class="hp-bar-bg"><div id="hp-p2" class="hp-fill"></div></div>
+            </div>
+        </div>
 
-            // --- INPUT HANDLERS (Touch & Keyboard) ---
+        <div id="f-p1" class="fighter f-p1">
+            <div class="head"></div><div id="sash-p1" class="sash"></div>
+            <div class="body"></div><div class="arm-l limb"></div><div class="arm-r limb"></div><div class="leg-l limb"></div><div class="leg-r limb"></div>
+        </div>
+        <div id="f-p2" class="fighter f-p2">
+            <div class="head"></div><div id="sash-p2" class="sash"></div>
+            <div class="body"></div><div class="arm-l limb"></div><div class="arm-r limb"></div><div class="leg-l limb"></div><div class="leg-r limb"></div>
+        </div>
 
-            const handleStart = (action) => {
-                inputRef.current[action] = true;
-                setInputs(prev => ({ ...prev, [action]: true }));
-                
-                if (action === 'punch') {
-                     playerRef.current.isPunching = true;
-                     setTimeout(() => { playerRef.current.isPunching = false; }, 200);
-                     checkHit();
-                }
-            };
-
-            const handleEnd = (action) => {
-                inputRef.current[action] = false;
-                setInputs(prev => ({ ...prev, [action]: false }));
-            };
-
-            useEffect(() => {
-                const handleKeyDown = (e) => {
-                    if (e.key === 'ArrowLeft') handleStart('left');
-                    if (e.key === 'ArrowRight') handleStart('right');
-                    if (e.key === ' ' || e.key === 'Enter') handleStart('punch');
-                };
-                const handleKeyUp = (e) => {
-                    if (e.key === 'ArrowLeft') handleEnd('left');
-                    if (e.key === 'ArrowRight') handleEnd('right');
-                    if (e.key === ' ' || e.key === 'Enter') handleEnd('punch');
-                };
-                window.addEventListener('keydown', handleKeyDown);
-                window.addEventListener('keyup', handleKeyUp);
-                return () => {
-                    window.removeEventListener('keydown', handleKeyDown);
-                    window.removeEventListener('keyup', handleKeyUp);
-                };
-            }, []);
-
-            // --- GAME LOGIC ---
-
-            const checkHit = () => {
-                const p = playerRef.current;
-                const e = enemyRef.current;
-                
-                // Simple collision detection for punch range
-                const distance = Math.abs(p.x - e.x);
-                const inRange = distance < 80;
-                const facingCorrectly = (p.facingRight && e.x > p.x) || (!p.facingRight && e.x < p.x);
-
-                if (inRange && facingCorrectly) {
-                    e.isHit = true;
-                    e.x += p.facingRight ? 20 : -20; // Knockback
-                    scoreRef.current += 10;
-                    setScore(scoreRef.current);
-                    setTimeout(() => { e.isHit = false; }, 200);
-                }
-            };
-
-            const update = () => {
-                const p = playerRef.current;
-                const e = enemyRef.current;
-                const canvas = canvasRef.current;
-                if (!canvas) return;
-                
-                const groundY = canvas.height - 150;
-
-                // Player Movement
-                if (inputRef.current.left) {
-                    p.x -= 5;
-                    p.facingRight = false;
-                }
-                if (inputRef.current.right) {
-                    p.x += 5;
-                    p.facingRight = true;
-                }
-
-                // Boundaries
-                if (p.x < 0) p.x = 0;
-                if (p.x > canvas.width - p.width) p.x = canvas.width - p.width;
-
-                // Enemy Logic (Simple dummy behavior)
-                // Keep enemy within bounds
-                if (e.x < 0) e.x = 0;
-                if (e.x > canvas.width - e.width) e.x = canvas.width - e.width;
-                
-                // Enemy slowly moves back to center if knocked away
-                const center = canvas.width / 2 + 100;
-                if (e.x < center) e.x += 1;
-                if (e.x > center) e.x -= 1;
-            };
-
-            const draw = (ctx) => {
-                const canvas = canvasRef.current;
-                const p = playerRef.current;
-                const e = enemyRef.current;
-                const groundY = canvas.height - 150;
-
-                ctx.clearRect(0, 0, canvas.width, canvas.height);
-
-                // Draw Ground
-                ctx.fillStyle = 'rgba(0,0,0,0.5)';
-                ctx.fillRect(0, groundY + p.height, canvas.width, 20);
-
-                // --- DRAW PLAYER (Hero) ---
-                ctx.save();
-                ctx.translate(p.x + p.width/2, groundY + p.height/2);
-                if (!p.facingRight) ctx.scale(-1, 1);
-                
-                // Body
-                ctx.fillStyle = '#3b82f6'; // Blue Shirt
-                ctx.fillRect(-20, 0, 40, 50);
-                // Head
-                ctx.fillStyle = '#ffccaa';
-                ctx.beginPath();
-                ctx.arc(0, -10, 15, 0, Math.PI * 2);
-                ctx.fill();
-                // Arms/Punch
-                ctx.fillStyle = '#ffccaa';
-                if (p.isPunching) {
-                    ctx.fillRect(10, 10, 40, 10); // Punch extended
-                } else {
-                    ctx.fillRect(0, 10, 10, 30); // Arms down
-                }
-                // Legs
-                ctx.fillStyle = '#1e3a8a'; // Dark pants
-                ctx.fillRect(-15, 50, 12, 40);
-                ctx.fillRect(3, 50, 12, 40);
-                
-                ctx.restore();
-
-                // --- DRAW ENEMY (Target) ---
-                ctx.save();
-                ctx.translate(e.x + e.width/2, groundY + e.height/2);
-                
-                // Flash red if hit
-                ctx.fillStyle = e.isHit ? '#ef4444' : '#4b5563'; 
-                ctx.fillRect(-20, 0, 40, 50); // Body
-                ctx.fillStyle = e.isHit ? '#fca5a5' : '#9ca3af';
-                ctx.beginPath();
-                ctx.arc(0, -10, 15, 0, Math.PI * 2); // Head
-                ctx.fill();
-                
-                // Floating Text on Hit
-                if (e.isHit) {
-                    ctx.fillStyle = '#ffff00';
-                    ctx.font = 'bold 24px Arial';
-                    ctx.fillText("POW!", -20, -40);
-                }
-
-                ctx.restore();
-            };
-
-            const gameLoop = () => {
-                const canvas = canvasRef.current;
-                const ctx = canvas.getContext('2d');
-                
-                // Responsive Canvas Size
-                canvas.width = window.innerWidth;
-                canvas.height = window.innerHeight;
-
-                update();
-                draw(ctx);
-                requestAnimationFrame(gameLoop);
-            };
-
-            useEffect(() => {
-                const loopId = requestAnimationFrame(gameLoop);
-                return () => cancelAnimationFrame(loopId);
-            }, []);
-
-            return (
-                <div className="w-full h-screen relative">
-                    
-                    {/* HUD */}
-                    <div className="absolute top-4 left-4 right-4 flex justify-between items-center z-10">
-                        <div className="flex items-center gap-2">
-                            <div className="bg-yellow-500 w-12 h-12 rounded-full border-4 border-yellow-300 overflow-hidden shadow-lg">
-                                {/* Simple Avatar Placeholder */}
-                                <svg viewBox="0 0 24 24" fill="black" className="w-full h-full p-1"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 3c1.66 0 3 1.34 3 3s-1.34 3-3 3-3-1.34-3-3 1.34-3 3-3zm0 14.2c-2.5 0-4.71-1.28-6-3.22.03-1.99 4-3.08 6-3.08 1.99 0 5.97 1.09 6 3.08-1.29 1.94-3.5 3.22-6 3.22z"/></svg>
-                            </div>
-                            <div className="flex flex-col">
-                                <span className="font-bold text-yellow-400 text-shadow-sm uppercase tracking-wider">Player 1</span>
-                                <div className="w-32 h-3 bg-gray-700 rounded-full overflow-hidden border border-gray-500">
-                                    <div className="h-full bg-green-500 w-full"></div>
-                                </div>
-                            </div>
-                        </div>
-
-                        <div className="flex flex-col items-end">
-                            <span className="text-sm text-gray-300 uppercase tracking-widest">Score</span>
-                            <span className="text-4xl font-bold text-white drop-shadow-md">{score}</span>
-                        </div>
-                    </div>
-
-                    {/* GAME CANVAS */}
-                    <canvas ref={canvasRef} className="w-full h-full"></canvas>
-
-                    {/* MOBILE CONTROLS (Always visible for this demo to ensure you see them) */}
-                    <div className="absolute bottom-6 left-6 flex gap-4 z-20">
-                        <div 
-                            className={`d-pad-btn ${inputs.left ? 'active' : ''}`}
-                            onTouchStart={(e) => { e.preventDefault(); handleStart('left'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); handleEnd('left'); }}
-                            onMouseDown={() => handleStart('left')}
-                            onMouseUp={() => handleEnd('left')}
-                        >
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M19 12H5"/><path d="M12 19l-7-7 7-7"/></svg>
-                        </div>
-                        <div 
-                            className={`d-pad-btn ${inputs.right ? 'active' : ''}`}
-                            onTouchStart={(e) => { e.preventDefault(); handleStart('right'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); handleEnd('right'); }}
-                            onMouseDown={() => handleStart('right')}
-                            onMouseUp={() => handleEnd('right')}
-                        >
-                            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M5 12h14"/><path d="M12 5l7 7-7 7"/></svg>
-                        </div>
-                    </div>
-
-                    <div className="absolute bottom-8 right-8 z-20">
-                        <div 
-                            className={`action-btn ${inputs.punch ? 'active' : ''}`}
-                            onTouchStart={(e) => { e.preventDefault(); handleStart('punch'); }}
-                            onTouchEnd={(e) => { e.preventDefault(); handleEnd('punch'); }}
-                            onMouseDown={() => handleStart('punch')}
-                            onMouseUp={() => handleEnd('punch')}
-                        >
-                            <span className="font-bold text-white tracking-wider text-sm">PUNCH</span>
-                        </div>
-                    </div>
-
-                    {/* Instructions Overlay (fades out) */}
-                    <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 pointer-events-none text-center opacity-50">
-                        <p className="text-sm">PC: Arrows + Space</p>
-                        <p className="text-sm">Mobile: Use Buttons</p>
-                    </div>
-
+        <div id="mobile-controls">
+            <div class="ctrl-row">
+                <div class="d-pad">
+                    <div class="c-btn" ontouchstart="inputStart('left')" ontouchend="inputEnd('left')">←</div>
+                    <div class="c-btn" ontouchstart="inputStart('right')" ontouchend="inputEnd('right')">→</div>
                 </div>
-            );
+                <div class="action-pad">
+                    <div class="c-btn btn-jump" ontouchstart="inputStart('jump')">⬆</div>
+                    <div class="c-btn btn-atk" ontouchstart="inputStart('punch')">👊</div>
+                    <div class="c-btn btn-atk" ontouchstart="inputStart('kick')">🦶</div>
+                </div>
+            </div>
+        </div>
+
+        <div id="win-overlay">
+            <div class="win-title" id="win-title">VIJAY WINS</div>
+            <div class="win-sub" id="win-sub">IS THE CM OF TAMIL NADU!</div>
+            <div class="leaderboard">
+                <div class="lb-row" style="color:#FFD700; font-weight:bold;"><span>PLAYER</span><span>WINS</span></div>
+                <div id="lb-content"></div>
+            </div>
+            <button class="btn btn-host" id="next-match-btn" style="display:none;" onclick="nextMatch()">NEXT MATCH</button>
+            <div id="wait-msg" style="color:#aaa; font-size:14px; margin-top:10px; display:none;">Waiting for Host...</div>
+        </div>
+    </div>
+
+    <script>
+        const CHARS = [
+            { id: 'vijay', name: 'TVK VIJAY', color: 'gold', icon: '🦁' },
+            { id: 'stalin', name: 'MK STALIN', color: '#ff3333', icon: '☀️' },
+            { id: 'eps', name: 'EPS', color: '#00cc00', icon: '🍃' },
+            { id: 'anna', name: 'ANNAMALAI', color: '#ff9900', icon: '🪷' },
+            { id: 'seeman', name: 'SEEMAN', color: '#333', icon: '🐯' }
+        ];
+
+        const GRAVITY = 0.6;
+        const JUMP_FORCE = 12; 
+        const MOVE_SPEED = 0.6; 
+        const GROUND_Y = 20;
+        const POINTS_TO_WIN = 5;
+
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun.services.mozilla.com' }
+                ]
+            }
+        };
+
+        let myId = null;
+        let myName = "Player";
+        let myChar = CHARS[0];
+        let role = 'guest'; 
+        let peer = null;
+        
+        let connections = []; 
+        let players = []; 
+        let currentMatch = { p1: null, p2: null }; 
+        let tournamentStarted = false; 
+        
+        let gameState = {
+            p1: { x: 20, y: 0, vy: 0, hp: 100, action: null, id: null },
+            p2: { x: 80, y: 0, vy: 0, hp: 100, action: null, id: null },
+            score: { p1: 0, p2: 0 },
+            active: false,
+            winner: null
+        };
+        
+        let inputs = { left: false, right: false };
+
+        // IMPROVED MOBILE CHECK: Checks UA or Width
+        function isMobile() { 
+            return /Android|iPhone|iPad/i.test(navigator.userAgent) || window.innerWidth < 900; 
+        }
+        
+        function logStatus(msg) { document.getElementById('status-log').innerText = msg; }
+
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
         }
 
-        const root = ReactDOM.createRoot(document.getElementById('root'));
-        root.render(<App />);
+        function showJoin() { document.getElementById('join-inputs').style.display = 'flex'; }
+
+        function renderCharGrid() {
+            const g = document.getElementById('char-grid');
+            g.innerHTML = '';
+            CHARS.forEach(c => {
+                const b = document.createElement('div');
+                b.className = 'char-btn';
+                b.innerText = c.icon;
+                b.onclick = () => selectChar(c);
+                if(c.id === myChar.id) b.classList.add('selected');
+                g.appendChild(b);
+            });
+        }
+        renderCharGrid();
+
+        function selectChar(c) {
+            myChar = c;
+            renderCharGrid();
+            if(role === 'guest' && peer) sendToHost({ type: 'update_profile', name: myName, char: c });
+            if(role === 'host') updateMyProfileHost();
+        }
+
+        function generateId() { return Math.random().toString(36).substring(2,6).toUpperCase(); }
+
+        function initHost() {
+            role = 'host';
+            myId = generateId(); 
+            myName = "HOST";
+            players = [{ id: 'HOST', name: myName, char: myChar, wins: 0 }];
+
+            if(peer) peer.destroy();
+            peer = new Peer(myId, peerConfig);
+            
+            peer.on('open', (id) => {
+                switchScreen('lobby-screen');
+                document.getElementById('room-code-display').innerText = `CODE: ${id}`;
+                document.getElementById('start-area').style.display = 'block'; 
+                renderPlayerList();
+                broadcastLobby();
+            });
+
+            peer.on('connection', (conn) => {
+                conn.on('open', () => {
+                    const exists = connections.find(c => c.id === conn.peer);
+                    if(!exists) connections.push({ conn: conn, id: conn.peer });
+                });
+
+                conn.on('data', (data) => {
+                    if(data.type === 'join') {
+                        if(tournamentStarted) {
+                            conn.send({ type: 'reject', msg: 'Match in Progress! Locked.' });
+                            return;
+                        }
+                        const pExists = players.find(p => p.id === conn.peer);
+                        if(!pExists) {
+                            const safeChar = data.char || CHARS[0];
+                            players.push({ id: conn.peer, name: data.name, char: safeChar, wins: 0 });
+                        }
+                        broadcastLobby();
+                    }
+                    if(data.type === 'update_profile') {
+                        const p = players.find(x => x.id === conn.peer);
+                        if(p) { p.name = data.name; p.char = data.char; }
+                        broadcastLobby();
+                    }
+                    if(data.type === 'input') {
+                        handleInput(conn.peer, data.inputData);
+                    }
+                });
+                
+                conn.on('close', () => {
+                    connections = connections.filter(c => c.id !== conn.peer);
+                    players = players.filter(p => p.id !== conn.peer);
+                    broadcastLobby();
+                });
+            });
+        }
+
+        function updateMyProfileHost() {
+            players[0].char = myChar;
+            broadcastLobby();
+        }
+
+        function broadcastLobby() {
+            renderPlayerList();
+            const cleanList = players.map(p => ({ id: p.id, name: p.name, char: p.char, wins: p.wins }));
+            
+            const btn = document.getElementById('start-btn');
+            if(role === 'host') {
+                if(players.length >= 2) {
+                    btn.disabled = false;
+                    btn.classList.add('ready');
+                    btn.innerText = "START IPL MATCH (" + players.length + " PLAYERS)";
+                } else {
+                    btn.disabled = true;
+                    btn.classList.remove('ready');
+                    btn.innerText = "WAITING FOR PLAYERS (" + players.length + "/2)";
+                }
+            }
+
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) {
+                    obj.conn.send({ type: 'lobby_update', players: cleanList });
+                }
+            });
+        }
+
+        function renderPlayerList() {
+            const list = document.getElementById('player-list');
+            list.innerHTML = '';
+            players.forEach(p => {
+                const div = document.createElement('div');
+                div.className = `player-item ${p.id === 'HOST' ? 'host' : ''}`;
+                const icon = p.char && p.char.icon ? p.char.icon : '?';
+                const leaderName = p.char && p.char.name ? p.char.name : 'Unknown';
+                div.innerHTML = `<div><span style="font-size:20px">${icon}</span> <b>${leaderName}</b> <span style="font-size:12px; color:#888;">(${p.name})</span></div> <div>Wins: ${p.wins}</div>`;
+                list.appendChild(div);
+            });
+        }
+
+        function startTournament() {
+            if(players.length < 2) return alert("Need at least 2 players!");
+            tournamentStarted = true;
+            currentMatch.p1 = players[0].id;
+            currentMatch.p2 = players[1].id;
+            gameState.score = { p1: 0, p2: 0 }; // Reset match score
+            startMatch();
+        }
+
+        function startMatch() {
+            gameState.p1 = { x: 20, y: 0, vy: 0, hp: 100, action: null, id: currentMatch.p1 };
+            gameState.p2 = { x: 80, y: 0, vy: 0, hp: 100, action: null, id: currentMatch.p2 };
+            gameState.active = true;
+            gameState.winner = null;
+
+            const p1Obj = players.find(p => p.id === currentMatch.p1);
+            const p2Obj = players.find(p => p.id === currentMatch.p2);
+            
+            const queueNames = players.slice(2).map(p => p.name);
+
+            const matchData = { 
+                p1: { name: p1Obj.name, char: p1Obj.char, id: p1Obj.id },
+                p2: { name: p2Obj.name, char: p2Obj.char, id: p2Obj.id },
+                queue: queueNames,
+                score: gameState.score
+            };
+
+            const payload = { type: 'match_start', match: matchData };
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) obj.conn.send(payload);
+            });
+            
+            setupGameUI(matchData);
+            requestAnimationFrame(gameLoop);
+        }
+
+        function nextMatch() {
+            // New Players Match - Reset Everything
+            const winnerId = gameState.winner;
+            const loserId = (currentMatch.p1 === winnerId) ? currentMatch.p2 : currentMatch.p1;
+            
+            const loserIndex = players.findIndex(p => p.id === loserId);
+            if(loserIndex > -1) {
+                const loserObj = players.splice(loserIndex, 1)[0];
+                players.push(loserObj);
+            }
+            
+            const winnerIndex = players.findIndex(p => p.id === winnerId);
+            if(winnerIndex > -1) {
+                const winnerObj = players.splice(winnerIndex, 1)[0];
+                players.unshift(winnerObj); 
+            }
+            
+            broadcastLobby(); 
+
+            currentMatch.p1 = players[0].id;
+            currentMatch.p2 = players[1].id;
+            gameState.score = { p1: 0, p2: 0 }; // Reset score for new match
+            
+            document.getElementById('win-overlay').style.display = 'none';
+            startMatch();
+        }
+
+        function joinGame() {
+            role = 'guest';
+            myName = document.getElementById('p-name').value || "Guest";
+            const code = document.getElementById('join-code').value.toUpperCase();
+            if(!code) return alert("Enter Code");
+
+            const btn = document.getElementById('join-action-btn');
+            btn.innerText = "CONNECTING...";
+            btn.disabled = true;
+            logStatus("Initializing Network...");
+
+            if(peer) peer.destroy();
+            peer = new Peer(peerConfig);
+
+            peer.on('open', (id) => {
+                logStatus("Network Ready. Connecting...");
+                myId = id;
+                const conn = peer.connect(code, { serialization: 'json' });
+                
+                conn.on('open', () => {
+                    logStatus("Connected! Joining Lobby...");
+                    peer.conn = conn; 
+                    conn.send({ type: 'join', name: myName, char: myChar });
+                });
+                
+                conn.on('data', (data) => {
+                    if(data.type === 'reject') {
+                        alert(data.msg);
+                        location.reload();
+                    }
+                    if(data.type === 'lobby_update') {
+                        switchScreen('lobby-screen'); 
+                        document.getElementById('room-code-display').innerText = `CONNECTED: ${code}`;
+                        players = data.players;
+                        renderPlayerList();
+                    }
+                    if(data.type === 'match_start') {
+                        setupGameUI(data.match);
+                    }
+                    if(data.type === 'sync') {
+                        renderGame(data.state);
+                    }
+                });
+
+                conn.on('error', (err) => {
+                    logStatus("Connection Error: " + err);
+                    btn.innerText = "ENTER ARENA";
+                    btn.disabled = false;
+                });
+            });
+
+            peer.on('error', (err) => {
+                logStatus("Error: " + err.type);
+                btn.innerText = "ENTER ARENA";
+                btn.disabled = false;
+            });
+        }
+        
+        function sendToHost(msg) {
+            if(peer && peer.conn && peer.conn.open) peer.conn.send(msg);
+        }
+
+        function setupGameUI(match) {
+            switchScreen('game-screen');
+            document.getElementById('win-overlay').style.display = 'none';
+
+            // Names
+            document.getElementById('p1-name').innerHTML = `${match.p1.char.name} <span style="font-size:10px">${match.p1.name}</span>`;
+            document.getElementById('p1-char').innerText = match.p1.char.icon;
+            document.getElementById('sash-p1').style.background = match.p1.char.color;
+            
+            document.getElementById('p2-name').innerHTML = `${match.p2.char.name} <span style="font-size:10px">${match.p2.name}</span>`;
+            document.getElementById('p2-char').innerText = match.p2.char.icon;
+            document.getElementById('sash-p2').style.background = match.p2.char.color;
+            
+            // Score
+            document.getElementById('score-display').innerText = `${match.score.p1} - ${match.score.p2}`;
+
+            const qList = document.getElementById('q-list');
+            qList.innerHTML = '';
+            if(match.queue && match.queue.length > 0) {
+                document.getElementById('match-queue').style.display = 'block';
+                match.queue.forEach((name, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'q-item';
+                    if(name === myName) div.classList.add('q-me');
+                    div.innerText = `${i+1}. ${name}`;
+                    qList.appendChild(div);
+                });
+            } else {
+                document.getElementById('match-queue').style.display = 'none';
+            }
+
+            let amIPlaying = false;
+            if(match.p1.id === 'HOST' && role === 'host') amIPlaying = true;
+            else if(match.p2.id === 'HOST' && role === 'host') amIPlaying = true;
+            else if(match.p1.id === myId || match.p2.id === myId) amIPlaying = true;
+
+            if(amIPlaying) {
+                document.getElementById('spec-badge').style.display = 'none';
+                
+                // Force show mobile controls if narrow screen
+                if(isMobile()) {
+                    document.getElementById('mobile-controls').style.display = 'flex';
+                    document.getElementById('pc-hint').style.display = 'none';
+                } else {
+                    document.getElementById('mobile-controls').style.display = 'none';
+                    document.getElementById('pc-hint').style.display = 'block';
+                    setupPCControls();
+                }
+            } else {
+                document.getElementById('spec-badge').style.display = 'block';
+                document.getElementById('mobile-controls').style.display = 'none';
+                document.getElementById('pc-hint').style.display = 'none';
+                window.onkeydown = null; 
+            }
+        }
+
+        function handleInput(playerId, data) {
+            let pKey = null;
+            if(playerId === gameState.p1.id) pKey = 'p1';
+            if(playerId === gameState.p2.id) pKey = 'p2';
+            
+            if(!pKey) return; 
+
+            if(data.type === 'move') {
+                if(!gameState.inputs) gameState.inputs = { p1: 0, p2: 0 };
+                gameState.inputs[pKey] = data.dir;
+            }
+            if(data.type === 'jump') doJump(pKey);
+            if(data.type === 'punch' || data.type === 'kick') doAttack(pKey, data.type);
+        }
+
+        function hostInput(data) { handleInput('HOST', data); }
+
+        function gameLoop() {
+            if(!gameState.active) return;
+
+            if(!gameState.inputs) gameState.inputs = { p1: 0, p2: 0 };
+
+            ['p1', 'p2'].forEach(key => {
+                const p = gameState[key];
+                const dir = gameState.inputs[key];
+
+                p.vy -= GRAVITY;
+                p.y += p.vy;
+                if(p.y < 0) { p.y = 0; p.vy = 0; }
+                if(dir !== 0 && !p.action) {
+                    p.x = Math.max(0, Math.min(90, p.x + (dir * MOVE_SPEED)));
+                }
+            });
+
+            const syncData = { type: 'sync', state: gameState };
+            connections.forEach(obj => {
+                if(obj.conn && obj.conn.open) obj.conn.send(syncData);
+            });
+            renderGame(gameState);
+
+            requestAnimationFrame(gameLoop);
+        }
+
+        function doJump(key) {
+            const p = gameState[key];
+            if(p.y <= 0.1) p.vy = JUMP_FORCE; 
+        }
+
+        function doAttack(key, type) {
+            const actor = gameState[key];
+            if(actor.action) return;
+            actor.action = type;
+            setTimeout(() => actor.action = null, 300);
+
+            const enemyKey = key === 'p1' ? 'p2' : 'p1';
+            const enemy = gameState[enemyKey];
+            const dx = Math.abs(actor.x - enemy.x);
+            const dy = Math.abs(actor.y - enemy.y);
+
+            if(dx < 15 && dy < 15) {
+                const dmg = type === 'punch' ? 5 : 10;
+                enemy.hp = Math.max(0, enemy.hp - dmg);
+                if(enemy.hp <= 0) endGame(key);
+            }
+        }
+
+        function endGame(winnerKey) {
+            gameState.active = false;
+            
+            // Increment Round Score
+            gameState.score[winnerKey]++;
+            
+            // Check Grand Winner
+            if(gameState.score[winnerKey] >= POINTS_TO_WIN) {
+                // GRAND WINNER Logic
+                const wId = gameState[winnerKey].id;
+                const winnerObj = players.find(p => p.id === wId);
+                if(winnerObj) winnerObj.wins++;
+                gameState.winner = wId;
+                
+                const syncData = { type: 'sync', state: gameState };
+                connections.forEach(obj => { if(obj.conn && obj.conn.open) obj.conn.send(syncData); });
+                renderGame(gameState);
+            } else {
+                // Round Over - Reset Positions but keep score
+                setTimeout(() => {
+                    gameState.p1.x = 20; gameState.p1.y = 0; gameState.p1.hp = 100;
+                    gameState.p2.x = 80; gameState.p2.y = 0; gameState.p2.hp = 100;
+                    gameState.active = true;
+                    
+                    // Sync Reset
+                    const syncData = { type: 'sync', state: gameState };
+                    connections.forEach(obj => { if(obj.conn && obj.conn.open) obj.conn.send(syncData); });
+                    
+                    // Also update score display on clients
+                    const matchData = { 
+                        p1: players.find(p => p.id === currentMatch.p1),
+                        p2: players.find(p => p.id === currentMatch.p2),
+                        score: gameState.score,
+                        queue: [] // Simplified for round update
+                    };
+                    // Update HUD with new score
+                    const scorePayload = { type: 'match_start', match: {
+                        p1: { name: matchData.p1.name, char: matchData.p1.char, id: matchData.p1.id },
+                        p2: { name: matchData.p2.name, char: matchData.p2.char, id: matchData.p2.id },
+                        score: gameState.score
+                    }};
+                    connections.forEach(obj => { if(obj.conn && obj.conn.open) obj.conn.send(scorePayload); });
+                    setupGameUI(scorePayload.match); // Host UI
+                    
+                    requestAnimationFrame(gameLoop);
+                }, 2000);
+            }
+        }
+
+        // CONFETTI GENERATOR
+        function triggerConfetti() {
+            for(let i=0; i<100; i++) {
+                const c = document.createElement('div');
+                c.className = 'confetti';
+                c.style.left = Math.random() * 100 + 'vw';
+                c.style.backgroundColor = ['#f00', '#0f0', '#00f', '#ff0'][Math.floor(Math.random()*4)];
+                c.style.animationDuration = (Math.random() * 2 + 2) + 's';
+                document.body.appendChild(c);
+                setTimeout(() => c.remove(), 4000);
+            }
+        }
+
+        function renderGame(state) {
+            document.getElementById('hp-p1').style.width = state.p1.hp + '%';
+            document.getElementById('hp-p2').style.width = state.p2.hp + '%';
+            
+            const e1 = document.getElementById('f-p1');
+            const e2 = document.getElementById('f-p2');
+            
+            e1.style.left = state.p1.x + '%';
+            e1.style.bottom = (20 + state.p1.y/2) + '%';
+            e2.style.left = state.p2.x + '%';
+            e2.style.bottom = (20 + state.p2.y/2) + '%';
+            
+            setAnim(e1, state.p1.action);
+            setAnim(e2, state.p2.action);
+            
+            if(!state.active && state.winner) {
+                document.getElementById('win-overlay').style.display = 'flex';
+                
+                const wObj = players.find(p => p.id === state.winner);
+                const wName = wObj ? wObj.char.name : "WINNER";
+                document.getElementById('win-title').innerText = wName + " WINS";
+                document.getElementById('win-sub').innerText = "IS THE CM OF TAMIL NADU!";
+                
+                triggerConfetti();
+
+                // Leaderboard
+                const lb = document.getElementById('lb-content');
+                lb.innerHTML = '';
+                const sorted = [...players].sort((a,b) => b.wins - a.wins);
+                sorted.forEach(p => {
+                    const r = document.createElement('div');
+                    r.className = 'lb-row';
+                    r.innerHTML = `<span>${p.name}</span> <span>${p.wins}</span>`;
+                    lb.appendChild(r);
+                });
+
+                if(role === 'host') {
+                    document.getElementById('next-match-btn').style.display = 'block';
+                    document.getElementById('wait-msg').style.display = 'none';
+                } else {
+                    document.getElementById('next-match-btn').style.display = 'none';
+                    document.getElementById('wait-msg').style.display = 'block';
+                }
+            }
+        }
+
+        function setAnim(el, act) {
+            el.classList.remove('punching', 'kicking');
+            if(act === 'punch') el.classList.add('punching');
+            if(act === 'kick') el.classList.add('kicking');
+        }
+
+        function setupPCControls() {
+            window.onkeydown = (e) => {
+                if(e.repeat) return;
+                const code = e.key;
+                let data = null;
+                if(code === 'ArrowLeft') data = { type: 'move', dir: -1 };
+                if(code === 'ArrowRight') data = { type: 'move', dir: 1 };
+                if(code === ' ') data = { type: 'jump' };
+                if(code === 'Control') data = { type: 'punch' };
+                if(code === 'Shift') data = { type: 'kick' };
+
+                if(data) sendInput(data);
+            };
+            window.onkeyup = (e) => {
+                if(e.key === 'ArrowLeft' || e.key === 'ArrowRight') sendInput({ type: 'move', dir: 0 });
+            };
+        }
+
+        function inputStart(act) {
+            if(act==='left') sendInput({ type:'move', dir: -1 });
+            else if(act==='right') sendInput({ type:'move', dir: 1 });
+            else sendInput({ type: act });
+        }
+        function inputEnd(act) {
+            if(act==='left'||act==='right') sendInput({ type:'move', dir: 0 });
+        }
+
+        function sendInput(data) {
+            if(role === 'host') hostInput(data);
+            else sendToHost({ type: 'input', inputData: data });
+        }
+        
+        function copyCode() {
+            navigator.clipboard.writeText(myId);
+            alert("Code Copied!");
+        }
     </script>
 </body>
 </html>
+
+
+
