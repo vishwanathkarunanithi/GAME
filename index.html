@@ -133,7 +133,7 @@
         <div class="input-group" id="join-inputs">
             <input type="text" id="p-name" class="code-input" placeholder="YOUR NAME" maxlength="10">
             <input type="text" id="join-code" class="code-input" placeholder="ROOM CODE" maxlength="4">
-            <button class="btn btn-join" style="width:100%; margin:0;" onclick="joinGame()">Enter Arena</button>
+            <button class="btn btn-join" id="join-action-btn" style="width:100%; margin:0;" onclick="joinGame()">Enter Arena</button>
         </div>
     </div>
 
@@ -236,6 +236,19 @@
         const MOVE_SPEED = 0.6; 
         const GROUND_Y = 20;
 
+        // PEER CONFIG FOR RELIABILITY
+        const peerConfig = {
+            config: {
+                iceServers: [
+                    { urls: 'stun:stun.l.google.com:19302' },
+                    { urls: 'stun:stun1.l.google.com:19302' },
+                    { urls: 'stun:stun2.l.google.com:19302' },
+                    { urls: 'stun:stun3.l.google.com:19302' },
+                    { urls: 'stun:stun4.l.google.com:19302' },
+                ]
+            }
+        };
+
         // --- STATE ---
         let myId = null;
         let myName = "Player";
@@ -300,7 +313,7 @@
             
             players.push({ id: 'HOST', name: myName, char: myChar, wins: 0, conn: null });
 
-            peer = new Peer(myId);
+            peer = new Peer(myId, peerConfig);
             peer.on('open', (id) => {
                 switchScreen('lobby-screen');
                 document.getElementById('room-code-display').innerText = `CODE: ${id}`;
@@ -421,7 +434,12 @@
             const code = document.getElementById('join-code').value.toUpperCase();
             if(!code) return alert("Enter Code");
 
-            peer = new Peer();
+            // Feedback UI
+            const btn = document.getElementById('join-action-btn');
+            btn.innerText = "CONNECTING...";
+            btn.disabled = true;
+
+            peer = new Peer(peerConfig);
             peer.on('open', (id) => {
                 myId = id;
                 const conn = peer.connect(code);
@@ -450,6 +468,19 @@
                         renderGame(data.state);
                     }
                 });
+
+                // Error Handling
+                conn.on('error', (err) => {
+                    alert("Connection Failed. Check Code or Internet.");
+                    btn.innerText = "ENTER ARENA";
+                    btn.disabled = false;
+                });
+            });
+
+            peer.on('error', (err) => {
+                alert("Network Error: " + err.type);
+                btn.innerText = "ENTER ARENA";
+                btn.disabled = false;
             });
         }
         
