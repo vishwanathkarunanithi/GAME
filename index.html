@@ -103,12 +103,32 @@
         .hit { filter: brightness(2) sepia(1) saturate(5) hue-rotate(-50deg); transform: translateX(-5px); }
         .ko { transform: rotate(90deg) translateY(50px); filter: grayscale(1); }
 
-        #mobile-controls { position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; z-index: 50; display: none; flex-direction: column; justify-content: flex-end; padding: 20px; pointer-events: none; }
-        .ctrl-row { display: flex; justify-content: space-between; width: 100%; margin-bottom: 20px; pointer-events: auto; }
-        .d-pad { display: flex; gap: 20px; }
-        .action-pad { display: flex; gap: 20px; }
+        /* --- UPDATED MOBILE CONTROLS FOR ASPECT RATIO --- */
+        #mobile-controls { 
+            position: absolute; bottom: 0; left: 0; width: 100%; height: 100%; 
+            z-index: 50; display: none; flex-direction: column; justify-content: flex-end; 
+            padding: 2vh 5vw; /* Dynamic padding based on viewport */
+            pointer-events: none; 
+        }
+        .ctrl-row { 
+            display: flex; justify-content: space-between; width: 100%; 
+            margin-bottom: 3vh; /* Dynamic bottom margin */
+            pointer-events: auto; 
+        }
+        .d-pad { display: flex; gap: 4vw; }
+        .action-pad { display: flex; gap: 4vw; }
 
-        .c-btn { width: 65px; height: 65px; border-radius: 50%; background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); backdrop-filter: blur(4px); color: white; font-size: 24px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 10px rgba(0,0,0,0.2); }
+        .c-btn { 
+            width: 15vmin; height: 15vmin; /* Scales with smaller dimension of screen */
+            max-width: 80px; max-height: 80px; /* Upper limit */
+            min-width: 50px; min-height: 50px; /* Lower limit */
+            border-radius: 50%; 
+            background: rgba(255,255,255,0.15); border: 2px solid rgba(255,255,255,0.4); 
+            backdrop-filter: blur(4px); color: white; 
+            font-size: 5vmin; /* Dynamic font size */
+            display: flex; align-items: center; justify-content: center; 
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); 
+        }
         .c-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.95); }
         .btn-atk { background: rgba(255, 50, 50, 0.3); border-color: #ff5555; }
         .btn-jump { background: rgba(50, 255, 50, 0.3); border-color: #55ff55; }
@@ -230,11 +250,12 @@
     </div>
 
     <script>
+        // --- UPDATED CHARACTER LIST ---
         const CHARS = [
-            { id: 'vijay', name: 'VIJAY', color: 'gold', icon: '🦁' },
-            { id: 'stalin', name: 'STALIN', color: '#ff3333', icon: '☀️' },
+            { id: 'vijay', name: 'TVK VIJAY', color: 'gold', icon: '🦁' },
+            { id: 'stalin', name: 'MK STALIN', color: '#ff3333', icon: '☀️' },
             { id: 'eps', name: 'EPS', color: '#00cc00', icon: '🍃' },
-            { id: 'anna', name: 'ANNA', color: '#ff9900', icon: '🪷' },
+            { id: 'anna', name: 'ANNAMALAI', color: '#ff9900', icon: '🪷' },
             { id: 'seeman', name: 'SEEMAN', color: '#333', icon: '🐯' }
         ];
 
