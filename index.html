@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Assembly Kombat 2026</title>
+    
+    <!-- PeerJS (P2P Connection) -->
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
+    <!-- QR Code Library -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto:wght@900&display=swap" rel="stylesheet">
+    
+    <style>
+        body { margin: 0; background: #050505; color: white; font-family: 'Roboto', sans-serif; overflow: hidden; touch-action: none; }
+        
+        /* --- SCREENS --- */
+        .screen { display: none; height: 100vh; width: 100vw; position: absolute; top: 0; left: 0; }
+        .active { display: flex; }
+
+        /* --- 1. MENU SCREEN --- */
+        #menu-screen { flex-direction: column; align-items: center; justify-content: center; background: #111; z-index: 100; }
+        .title { font-family: 'Press Start 2P'; color: yellow; text-shadow: 4px 4px #f00; font-size: 2rem; text-align: center; line-height: 1.5; margin-bottom: 2rem; }
+        
+        .menu-card { background: #222; border: 2px solid #444; border-radius: 15px; padding: 2rem; width: 90%; max-width: 400px; text-align: center; }
+        .btn { width: 100%; padding: 15px; font-size: 1.2rem; font-weight: bold; border: none; border-radius: 8px; cursor: pointer; font-family: 'Press Start 2P'; margin-bottom: 1rem; transition: transform 0.1s; }
+        .btn:active { transform: scale(0.95); }
+        .btn-host { background: #0f0; color: black; box-shadow: 0 5px 0 #0a0; }
+        .btn-join { background: #00f; color: white; box-shadow: 0 5px 0 #00a; }
+        
+        .input-code { width: 100%; padding: 10px; font-size: 1.2rem; text-align: center; margin-bottom: 10px; border-radius: 8px; border: 2px solid #555; background: #000; color: yellow; font-family: monospace; text-transform: uppercase; }
+
+        /* --- 2. HOST SCREEN (LAPTOP) --- */
+        #host-screen { background: #000; position: relative; }
+        
+        /* WALLPAPER: VIJAY (User Preference) */
+        .bg-wallpaper {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            /* High Res Vijay Image */
+            background: url('https://wallpaperaccess.com/full/2566060.jpg') no-repeat center center/cover;
+            filter: brightness(0.5); 
+            z-index: 0;
+        }
+
+        /* LOBBY OVERLAY (Waiting for Player) */
+        #lobby-overlay {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.85); z-index: 50;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+        }
+        .lobby-box { background: #222; padding: 30px; border-radius: 20px; border: 2px solid yellow; text-align: center; max-width: 90%; }
+        .share-link { background: #333; padding: 10px; border-radius: 5px; color: #aaa; font-family: monospace; font-size: 12px; margin-top: 10px; word-break: break-all; user-select: text; }
+
+        /* GAME HUD */
+        .hud { position: absolute; top: 0; width: 100%; padding: 20px; display: flex; justify-content: space-between; z-index: 10; box-sizing: border-box; }
+        .p-card { width: 45%; }
+        .p-name { font-family: 'Press Start 2P'; font-size: 12px; margin-bottom: 5px; display: block; text-shadow: 2px 2px 0 #000; }
+        .hp-bar { width: 100%; height: 25px; background: #333; border: 2px solid white; border-radius: 12px; overflow: hidden; }
+        .hp-fill { height: 100%; width: 100%; transition: width 0.2s; }
+
+        /* GAME ARENA */
+        .arena-floor { position: absolute; bottom: 0; width: 100%; height: 20%; background: #e6b800; border-top: 5px solid #c29b00; z-index: 1; }
+        .fighter { width: 100px; height: 180px; position: absolute; bottom: 15%; z-index: 5; transition: transform 0.1s; }
+        .f-p1 { left: 20%; } /* Host */
+        .f-p2 { right: 20%; transform: scaleX(-1); } /* Guest */
+
+        /* Stickman Styles */
+        .head { width: 40px; height: 40px; background: #ffccaa; border-radius: 50%; border: 3px solid #000; position: absolute; left: 30px; top: 0; z-index: 2; }
+        .body { width: 8px; height: 70px; background: #000; position: absolute; left: 46px; top: 40px; }
+        .arm { width: 50px; height: 8px; background: #000; position: absolute; top: 50px; left: 46px; transform-origin: left; border-radius: 4px; }
+        .leg { width: 8px; height: 60px; background: #000; position: absolute; top: 100px; left: 46px; transform-origin: top; border-radius: 4px; }
+        .sash { width: 30px; height: 50px; position: absolute; top: 45px; left: 35px; border-radius: 5px; opacity: 0.9; z-index: 1; }
+
+        /* Animations */
+        .punching .arm { transform: rotate(-45deg) scaleX(1.4); background: #fff; }
+        .kicking .leg { transform: rotate(-90deg) scaleY(1.2); background: #fff; }
+        .hit { filter: brightness(2) sepia(1) hue-rotate(-50deg) saturate(5); transform: translateX(-10px); }
+        .ko { transform: rotate(90deg) translateY(100px); filter: grayscale(1); }
+
+        /* --- 3. CONTROLLER SCREEN (MOBILE) --- */
+        #ctrl-screen { background: #1a1a1a; flex-direction: column; align-items: center; justify-content: flex-end; padding-bottom: 50px; }
+        .ctrl-status { position: absolute; top: 20px; color: yellow; font-family: 'Press Start 2P'; font-size: 14px; }
+        .ctrl-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; width: 90%; max-width: 400px; }
+        .ctrl-btn { height: 120px; border-radius: 20px; border: none; font-size: 24px; font-weight: bold; color: white; box-shadow: 0 8px 0 rgba(0,0,0,0.5); font-family: 'Press Start 2P'; }
+        .btn-punch { background: linear-gradient(#ff4444, #cc0000); }
+        .btn-kick { background: linear-gradient(#ffaa00, #cc6600); }
+        .btn-active { transform: translateY(5px); box-shadow: none; filter: brightness(1.2); }
+
+        /* Win Overlay */
+        #win-overlay { display: none; position: fixed; top:0; left:0; width:100%; height:100%; background: rgba(0,0,0,0.95); z-index: 100; flex-direction: column; align-items: center; justify-content: center; }
+        .win-txt { font-family: 'Press Start 2P'; color: gold; font-size: 40px; text-align: center; margin-bottom: 20px; animation: bounce 1s infinite; }
+        @keyframes bounce { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.1); } }
+    </style>
+</head>
+<body>
+
+    <!-- 1. MENU SCREEN -->
+    <div id="menu-screen" class="screen active">
+        <div class="title">ASSEMBLY<br>KOMBAT</div>
+        <div class="menu-card">
+            <button class="btn btn-host" onclick="setupHost()">HOST GAME<br><span style="font-size:12px">(Laptop/TV)</span></button>
+            <div style="margin: 15px 0; color: #666;">- OR -</div>
+            <input type="text" id="manual-code" class="input-code" placeholder="ENTER CODE">
+            <button class="btn btn-join" onclick="manualJoin()">JOIN GAME</button>
+        </div>
+    </div>
+
+    <!-- 2. HOST SCREEN -->
+    <div id="host-screen" class="screen">
+        <div class="bg-wallpaper"></div>
+        
+        <!-- WAITING LOBBY -->
+        <div id="lobby-overlay">
+            <div class="lobby-box">
+                <h2 style="color:yellow; font-family:'Press Start 2P'; margin-bottom:20px;">WAITING FOR P2...</h2>
+                <div id="qrcode"></div>
+                <div style="margin-top:20px; font-size:24px; font-weight:bold; color:#0f0;" id="display-code">...</div>
+                <div style="color:#aaa; font-size:12px; margin-top:5px;">ENTER THIS CODE ON MOBILE</div>
+                
+                <div style="margin-top:20px; border-top:1px solid #444; padding-top:10px;">
+                    <div style="color:white; font-size:14px; margin-bottom:5px;">Or send this link:</div>
+                    <div class="share-link" id="link-box" onclick="copyLink()">Generating Link...</div>
+                    <div id="copy-msg" style="color:#0f0; font-size:10px; height:15px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="hud">
+            <div class="p-card">
+                <span class="p-name" style="color:yellow">VIJAY (YOU)</span>
+                <div class="hp-bar"><div id="hp-p1" class="hp-fill" style="background: yellow; width:100%;"></div></div>
+            </div>
+            <div class="p-card" style="text-align: right;">
+                <span class="p-name" style="color:red">OPPONENT</span>
+                <div class="hp-bar"><div id="hp-p2" class="hp-fill" style="background: red; width:100%;"></div></div>
+            </div>
+        </div>
+
+        <!-- FIGHTERS -->
+        <div id="f-p1" class="fighter f-p1">
+            <div class="head"></div><div class="sash" style="background: yellow;"></div>
+            <div class="body"></div><div class="arm"></div><div class="leg"></div>
+        </div>
+        <div id="f-p2" class="fighter f-p2">
+            <div class="head"></div><div class="sash" style="background: red;"></div>
+            <div class="body"></div><div class="arm"></div><div class="leg"></div>
+        </div>
+
+        <div class="arena-floor"></div>
+
+        <div id="win-overlay">
+            <div class="win-txt" id="win-msg">VIJAY WINS!</div>
+            <button class="btn btn-host" style="width:200px;" onclick="location.reload()">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <!-- 3. CONTROLLER SCREEN -->
+    <div id="ctrl-screen" class="screen">
+        <div class="ctrl-status" id="ctrl-status">CONNECTING...</div>
+        <div class="ctrl-grid">
+            <button class="ctrl-btn btn-punch" ontouchstart="sendAction('punch')" onmousedown="sendAction('punch')">PUNCH</button>
+            <button class="ctrl-btn btn-kick" ontouchstart="sendAction('kick')" onmousedown="sendAction('kick')">KICK</button>
+        </div>
+    </div>
+
+    <script>
+        // --- GAME LOGIC ---
+        let peer = null;
+        let conn = null;
+        let hp = { p1: 100, p2: 100 };
+        const myId = generateId();
+
+        // 0. AUTO-DETECT: Is this a Join Link?
+        window.onload = () => {
+            const urlParams = new URLSearchParams(window.location.search);
+            const joinCode = urlParams.get('join');
+            if (joinCode) {
+                // If link has ?join=CODE, auto-connect
+                joinHost(joinCode);
+            }
+        };
+
+        // --- HOST FUNCTIONS ---
+        function setupHost() {
+            switchScreen('host-screen');
+            
+            // 1. Initialize Peer
+            peer = new Peer(myId);
+            
+            peer.on('open', (id) => {
+                // Display Code
+                document.getElementById('display-code').innerText = id;
+                
+                // Generate Magic Link
+                const link = window.location.href.split('?')[0] + "?join=" + id;
+                document.getElementById('link-box').innerText = link;
+                
+                // Generate QR Code
+                new QRCode(document.getElementById("qrcode"), {
+                    text: link,
+                    width: 128,
+                    height: 128
+                });
+            });
+
+            // 2. Wait for Player
+            peer.on('connection', (c) => {
+                conn = c;
+                setupConnection();
+                document.getElementById('lobby-overlay').style.display = 'none'; // Hide lobby, start game
+            });
+
+            // 3. Host Controls (Keyboard)
+            window.addEventListener('keydown', (e) => {
+                if(e.key === 'a') handleAttack('p1', 'punch');
+                if(e.key === 's') handleAttack('p1', 'kick');
+            });
+        }
+
+        // --- JOIN FUNCTIONS ---
+        function manualJoin() {
+            const code = document.getElementById('manual-code').value.toUpperCase();
+            if(code) joinHost(code);
+        }
+
+        function joinHost(hostId) {
+            switchScreen('ctrl-screen');
+            peer = new Peer();
+            
+            peer.on('open', () => {
+                conn = peer.connect(hostId);
+                
+                conn.on('open', () => {
+                    document.getElementById('ctrl-status').innerText = "CONNECTED TO HOST";
+                    document.getElementById('ctrl-status').style.color = "#0f0";
+                });
+                
+                conn.on('error', (err) => {
+                    alert("Connection Failed. Check Code.");
+                    location.href = window.location.href.split('?')[0]; // Reset
+                });
+            });
+        }
+
+        function setupConnection() {
+            conn.on('data', (data) => {
+                if(data.type === 'attack') {
+                    handleAttack('p2', data.move); // Command from Phone
+                }
+            });
+        }
+
+        function sendAction(move) {
+            if(conn && conn.open) {
+                conn.send({ type: 'attack', move: move });
+                if(navigator.vibrate) navigator.vibrate(50);
+            }
+        }
+
+        // --- GAMEPLAY ENGINE ---
+        function handleAttack(attacker, move) {
+            if(hp.p1 <= 0 || hp.p2 <= 0) return;
+
+            const victim = attacker === 'p1' ? 'p2' : 'p1';
+            const dmg = move === 'punch' ? 5 : 10;
+            
+            // Animation
+            const attEl = document.getElementById('f-' + attacker);
+            const vicEl = document.getElementById('f-' + victim);
+            
+            attEl.classList.add(move === 'punch' ? 'punching' : 'kicking');
+            setTimeout(() => attEl.classList.remove('punching', 'kicking'), 200);
+
+            // Hit Effect & Damage
+            setTimeout(() => {
+                vicEl.classList.add('hit');
+                setTimeout(() => vicEl.classList.remove('hit'), 150);
+                
+                hp[victim] = Math.max(0, hp[victim] - dmg);
+                updateBars();
+                
+                if(hp[victim] <= 0) endGame(attacker);
+            }, 100);
+        }
+
+        function updateBars() {
+            document.getElementById('hp-p1').style.width = hp.p1 + '%';
+            document.getElementById('hp-p2').style.width = hp.p2 + '%';
+        }
+
+        function endGame(winnerRole) {
+            const winnerName = winnerRole === 'p1' ? "VIJAY" : "OPPONENT";
+            document.getElementById('win-overlay').style.display = 'flex';
+            document.getElementById('win-msg').innerText = winnerName + " WINS!";
+        }
+
+        // --- UTILS ---
+        function switchScreen(id) {
+            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+            document.getElementById(id).classList.add('active');
+        }
+
+        function generateId() {
+            const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+            let result = "";
+            for(let i=0; i<4; i++) result += chars.charAt(Math.floor(Math.random() * chars.length));
+            return result;
+        }
+
+        function copyLink() {
+            const text = document.getElementById('link-box').innerText;
+            navigator.clipboard.writeText(text).then(() => {
+                document.getElementById('copy-msg').innerText = "COPIED TO CLIPBOARD!";
+                setTimeout(() => document.getElementById('copy-msg').innerText = "", 2000);
+            });
+        }
+    </script>
+</body>
+</html>
+
+
